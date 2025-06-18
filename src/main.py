@@ -36,8 +36,8 @@ def main():
                         help='Specify augmentation strategy')
     parser.add_argument('--model', type=str, default='cnn',
                         choices=['cnn', 'resnet', 'efficientnet'], help='Model to train')
-    parser.add_argument('--dataset', type=str, default='cifar10',
-                        choices=['cifar10', 'mnist', 'imagenet'], help='Dataset to use')
+    parser.add_argument('--dataset', type=str, default='all',
+                        choices=['all', 'cifar10', 'mnist', 'imagenet'], help='Dataset to use')
     parser.add_argument('--epochs', type=int, default=20, help='Number of training epochs')
     parser.add_argument('--batch-size', type=int, default=64, help='Batch size')
     parser.add_argument('--config', '-c', type=str, help='Path to config file (YAML/JSON)')
