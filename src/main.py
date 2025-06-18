@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+from utils.datasets import download_dataset
 
 def setup_logger():
     """Configure logger to output to console and file."""
@@ -48,6 +49,7 @@ def main():
 
     if args.load_data:
         logger.info("Action: Download datasets selected.")
+        download_dataset(args.dataset)
     if args.preprocess:
         logger.info("Action: Preprocess and clean data selected.")
     if args.train:
