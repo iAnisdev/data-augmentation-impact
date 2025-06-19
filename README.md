@@ -50,16 +50,16 @@ python src/main.py [ACTION FLAGS] [OPTIONS]
 
 #### Available Action Flags
 
-| Flag            | Shortcut | Description                                                             |
-|-----------------|----------|-------------------------------------------------------------------------|
-| --load-data     | --ld     | Download datasets (CIFAR-10, MNIST, etc.)                               |
-| --preprocess    | --pp     | Preprocess and clean data                                               |
-| --train         | --tr     | Train models (choose model/dataset/aug)                                 |
-| --evaluate      | --ev     | Evaluate models and output metrics/plots                                |
-| --all           | --a      | Run the entire pipeline (load, preprocess, train, evaluate)             |
-| --augment       | --aug    | Specify augmentation strategy (traditional, advanced, gan, etc.)        |
-| --config        | -c       | Use experiment configuration file (YAML/JSON)                           |
-| --help          | -h       | Show help message                                                       |
+| Flag         | Shortcut | Description                                                      |
+| ------------ | -------- | ---------------------------------------------------------------- |
+| --load-data  | --ld     | Download datasets (CIFAR-10, MNIST, etc.)                        |
+| --preprocess | --pp     | Preprocess and clean data                                        |
+| --train      | --tr     | Train models (choose model/dataset/aug)                          |
+| --evaluate   | --ev     | Evaluate models and output metrics/plots                         |
+| --all        | --a      | Run the entire pipeline (load, preprocess, train, evaluate)      |
+| --augment    | --aug    | Specify augmentation strategy (traditional, advanced, gan, etc.) |
+| --config     | -c       | Use experiment configuration file (YAML/JSON)                    |
+| --help       | -h       | Show help message                                                |
 
 ---
 
@@ -105,16 +105,16 @@ python src/main.py --all --config experiments/configs/baseline_resnet_cifar10.ya
 
 ## 🛠️ Arguments Reference
 
-| Argument       | Description                                                      | Default      |
-|----------------|------------------------------------------------------------------|--------------|
-| --model        | Model to train (`cnn`, `resnet`, `efficientnet`)                 | `cnn`        |
-| --dataset      | Dataset to use (`cifar10`, `mnist`, `imagenet`)                  | `cifar10`    |
-| --augment      | Augmentation method (`none`, `traditional`, `advanced`, `auto`, `gan`) | `none` |
-| --epochs       | Number of training epochs                                        | `20`         |
-| --batch-size   | Batch size                                                       | `64`         |
-| --config       | Path to config file for advanced setups                          | *optional*   |
+| Argument     | Description                                                            | Default    |
+| ------------ | ---------------------------------------------------------------------- | ---------- |
+| --model      | Model to train (`cnn`, `resnet`, `efficientnet`)                       | `cnn`      |
+| --dataset    | Dataset to use (`all`,`cifar10`, `mnist`, `imagenet`)                  | `all`      |
+| --augment    | Augmentation method (`none`, `traditional`, `advanced`, `auto`, `gan`) | `none`     |
+| --epochs     | Number of training epochs                                              | `20`       |
+| --batch-size | Batch size                                                             | `64`       |
+| --config     | Path to config file for advanced setups                                | _optional_ |
 
-*See `python src/main.py --help` for the full list of options and descriptions.*
+_See `python src/main.py --help` for the full list of options and descriptions._
 
 ---
 
@@ -124,7 +124,6 @@ Outputs such as logs, metrics, and plots will be saved in the `results/` directo
 
 ---
 
-
 ## 📄 License
 
 MIT License
@@ -133,4 +132,4 @@ MIT License
 
 ## 📚 References
 
-* List of all academic papers and links to datasets, see `docs/references.md`.
+- List of all academic papers and links to datasets, see `docs/references.md`.
