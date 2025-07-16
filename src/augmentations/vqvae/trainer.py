@@ -26,7 +26,7 @@ def train_vqvae(dataset_name="cifar10", data_dir="./data", device="cpu"):
     model = VQVAE().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=2e-4)
 
-    for epoch in range(30):
+    for epoch in range(5):
         for x, _ in loader:
             x = x.to(device)
             recon, loss = model(x)
