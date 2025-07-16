@@ -33,7 +33,7 @@ def download_tiny_imagenet(data_root):
     os.makedirs(data_root, exist_ok=True)
 
     if os.path.exists(extract_path):
-        logger.info("Tiny ImageNet already downloaded and extracted.")
+        logger.info(f"Tiny ImageNet already downloaded in {data_root}.")
         return
 
     logger.info("Downloading Tiny ImageNet...")
