@@ -1,7 +1,12 @@
 from .model import VQVAE
 from torchvision import transforms, datasets
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
+from tqdm import tqdm
 import torch, os
+
+import logging
+
+logger = logging.getLogger("AugmentationPipeline")
 
 def get_dataset(name, data_dir, transform):
     if name == "cifar10":
@@ -13,7 +18,7 @@ def get_dataset(name, data_dir, transform):
     else:
         raise ValueError(f"Unsupported dataset: {name}")
 
-def train_vqvae(dataset_name="cifar10", data_dir="./data", device="cpu"):
+def train_vqvae(dataset_name="cifar10", data_dir="./data", device="cpu", epochs=5, train_size=0.9, test_size=0.1):
     transform = [transforms.Resize((64, 64))]
     if dataset_name == "mnist":
         transform.append(transforms.Grayscale(num_output_channels=3))
@@ -21,22 +26,33 @@ def train_vqvae(dataset_name="cifar10", data_dir="./data", device="cpu"):
     transform = transforms.Compose(transform)
 
     dataset = get_dataset(dataset_name, data_dir, transform)
-    loader = DataLoader(dataset, batch_size=64, shuffle=True)
+
+    n = len(dataset)
+    train_len = int(n * train_size)
+    test_len = n - train_len
+    train_dataset, test_dataset = random_split(dataset, [train_len, test_len])
+
+    loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 
     model = VQVAE().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=2e-4)
 
-    for epoch in range(5):
-        for x, _ in loader:
+    for epoch in range(epochs):
+        epoch_loss = 0
+        n_batches = 0
+        for x, _ in tqdm(loader, desc=f"VQ-VAE Epoch {epoch+1}/{epochs}"):
             x = x.to(device)
             recon, loss = model(x)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        print(f"Epoch {epoch+1} Loss: {loss.item():.4f}")
+            epoch_loss += loss.item()
+            n_batches += 1
+        avg_loss = epoch_loss / n_batches
+        logger.info(f"Epoch {epoch+1} Avg Loss: {avg_loss:.4f}")
 
     save_path = f"./weights/vqvae_{dataset_name}.pt"
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     torch.save(model.state_dict(), save_path)
-    print(f"Model saved to {save_path}")
+    logger.info(f"Model saved to {save_path}")
     return model
