@@ -196,3 +196,5 @@ cython_debug/
 #.data
 .data/
 *.ipynb
+
+processed/
