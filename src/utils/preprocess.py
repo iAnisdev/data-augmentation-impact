@@ -40,7 +40,7 @@ def get_augmentation(dataset_name, aug_type: str, device="cpu"):
         "mixup": MixupAugmentation(),
         "lsb": LSBAugmentation(),
         "fusion": FusionAugmentation(),
-        "gan": BigGANAugmentation(device=device),
+        "gan": BigGANAugmentation(dataset_name=dataset_name, device=device),
     }
     if aug_type in AUGS:
         return AUGS[aug_type]
