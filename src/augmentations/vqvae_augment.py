@@ -1,5 +1,5 @@
 from .base import Augmentation
-from models.vqvae import VQVAE 
+from models.vqvae.model import VQVAE 
 import torch
 import torchvision.transforms as T
 from PIL import Image
