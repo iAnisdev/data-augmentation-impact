@@ -91,7 +91,7 @@ def main():
 
     if args.preprocess:
         logger.info("Running preprocessing pipeline...")
-
+        download_dataset(args.dataset)
         preprocess_all(
             dataset=args.dataset,
             augmentation=args.augment,
