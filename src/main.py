@@ -1,7 +1,9 @@
 import argparse
 import logging
 import sys
+import os
 from utils.datasets import download_dataset
+from utils.preprocess import preprocess_data
 
 def setup_logger():
     """Configure logger to output to console and file."""
@@ -22,26 +24,62 @@ def setup_logger():
 def main():
     logger = setup_logger()
 
+    SUPPORTED_DATASETS = ["cifar10", "mnist", "imagenet"]
+    SUPPORTED_AUGS = ["traditional", "miamix", "mixup", "lsb", "vqvae", "fusion"]
+
     parser = argparse.ArgumentParser(
         description="Image Augmentation and Classification CLI"
     )
 
     # ACTION FLAGS
-    parser.add_argument('--load-data', '--ld', action='store_true', help='Download datasets (CIFAR-10, MNIST, etc.)')
-    parser.add_argument('--preprocess', '--pp', action='store_true', help='Preprocess and clean data')
-    parser.add_argument('--train', '--tr', action='store_true', help='Train models')
-    parser.add_argument('--evaluate', '--ev', action='store_true', help='Evaluate models and output metrics/plots')
-    parser.add_argument('--all', '--a', action='store_true', help='Run the entire pipeline')
-    parser.add_argument('--augment', '--aug', type=str, default='none',
-                        choices=['none', 'traditional', 'advanced', 'fusion', 'gan'],
-                        help='Specify augmentation strategy')
-    parser.add_argument('--model', type=str, default='cnn',
-                        choices=['cnn', 'resnet', 'efficientnet'], help='Model to train')
-    parser.add_argument('--dataset', type=str, default='all',
-                        choices=['all', 'cifar10', 'mnist', 'imagenet'], help='Dataset to use')
-    parser.add_argument('--epochs', type=int, default=20, help='Number of training epochs')
-    parser.add_argument('--batch-size', type=int, default=64, help='Batch size')
-    parser.add_argument('--config', '-c', type=str, help='Path to config file (YAML/JSON)')
+    parser.add_argument(
+        "--load-data",
+        "--ld",
+        action="store_true",
+        help="Download datasets (CIFAR-10, MNIST, etc.)",
+    )
+    parser.add_argument(
+        "--preprocess", "--pp", action="store_true", help="Preprocess and clean data"
+    )
+    parser.add_argument("--train", "--tr", action="store_true", help="Train models")
+    parser.add_argument(
+        "--evaluate",
+        "--ev",
+        action="store_true",
+        help="Evaluate models and output metrics/plots",
+    )
+    parser.add_argument(
+        "--all", "--a", action="store_true", help="Run the entire pipeline"
+    )
+    parser.add_argument(
+        "--augment",
+        "--aug",
+        type=str,
+        default="all",
+        choices=["all", "traditional", "miamix", "mixup", "lsb", "vqvae", "fusion"],
+        help="Specify augmentation strategy",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="cnn",
+        choices=["cnn", "resnet", "efficientnet"],
+        help="Model to train",
+    )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default="all",
+        choices=["all", "cifar10", "mnist", "imagenet"],
+        help="Dataset to use",
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=20, help="Number of training epochs"
+    )
+    parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
+    parser.add_argument(
+        "--config", "-c", type=str, help="Path to config file (YAML/JSON)"
+    )
 
     args = parser.parse_args()
 
@@ -51,13 +89,44 @@ def main():
         logger.info("Action: Download datasets selected.")
         download_dataset(args.dataset)
     if args.preprocess:
+        download_dataset(args.dataset)
+        datasets_to_run = (
+            SUPPORTED_DATASETS if args.dataset == "all" else [args.dataset]
+        )
+        augs_to_run = SUPPORTED_AUGS if args.augment == "all" else [args.augment]
+
+        for ds in datasets_to_run:
+            for aug in augs_to_run:
+                logger.info(f"Preprocessing {ds} with {aug}")
+                vqvae_weight_path = None
+                if aug == "vqvae":
+                    vqvae_weight_path = f"./weights/vqvae_{ds}.pt"
+                    if not os.path.exists(vqvae_weight_path):
+                        logger.error(f"Missing VQ-VAE weights for dataset '{ds}': expected at {vqvae_weight_path}")
+                        sys.exit(1)
+                result = preprocess_data(
+                    dataset_name=ds,
+                    augmentation_type=aug,
+                    batch_size=args.batch_size,
+                    raw_data_dir="./.data",
+                    out_root="./processed",
+                    device="cpu",
+                    vqvae_weight_path=vqvae_weight_path,
+                    train_size=0.8,
+                    test_size=0.2,
+                )
+                logger.info(f"Preprocessing result: {result}")
         logger.info("Action: Preprocess and clean data selected.")
     if args.train:
-        logger.info(f"Action: Train model selected. Model: {args.model}, Dataset: {args.dataset}, Augmentation: {args.augment}")
+        logger.info(
+            f"Action: Train model selected. Model: {args.model}, Dataset: {args.dataset}, Augmentation: {args.augment}"
+        )
     if args.evaluate:
         logger.info("Action: Evaluate models selected.")
     if args.all:
-        logger.info(f"Action: Run full pipeline. Model: {args.model}, Dataset: {args.dataset}, Augmentation: {args.augment}")
+        logger.info(
+            f"Action: Run full pipeline. Model: {args.model}, Dataset: {args.dataset}, Augmentation: {args.augment}"
+        )
 
     if args.augment:
         logger.info(f"Augmentation method: {args.augment}")
@@ -66,6 +135,7 @@ def main():
         logger.info(f"Using configuration file: {args.config}")
 
     logger.info("Pipeline setup complete. (No computation performed yet)")
+
 
 if __name__ == "__main__":
     main()
