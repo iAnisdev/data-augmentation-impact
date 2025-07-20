@@ -92,10 +92,6 @@ def main():
     if args.preprocess:
         logger.info("Running preprocessing pipeline...")
 
-        if args.augment in ["vqvae", "all"]:
-            model = get_vqvae_model(args.dataset, device=device)
-            apply_vqvae(args.dataset, model, device=device, batch_size=args.batch_size)
-
         preprocess_all(
             dataset=args.dataset,
             augmentation=args.augment,
@@ -105,6 +101,10 @@ def main():
             device=device,
         )
 
+        if args.augment in ["vqvae", "all"]:
+            model = get_vqvae_model(args.dataset, device=device)
+            apply_vqvae(args.dataset, model, device=device, batch_size=args.batch_size)
+            
     # Placeholder logs for train/eval
     if args.train:
         logger.info(f"Train model: {args.model} on {args.dataset} with {args.augment}")
