@@ -3,7 +3,9 @@ import logging
 import sys
 from utils.datasets import download_dataset
 from utils.preprocess import preprocess_all
+import torch 
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 def setup_logger():
     """Configure logger to output to console and file."""
@@ -93,7 +95,7 @@ def main():
             batch_size=args.batch_size,
             train_size=0.8,
             test_size=0.2,
-            device="cpu",
+            device=device,
         )
 
     # Placeholder logs for train/eval
