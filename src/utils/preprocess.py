@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-import torch
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, random_split
 from torchvision.utils import save_image
@@ -11,26 +10,23 @@ from augmentations import (
     MiAMixAugmentation,
     MixupAugmentation,
     LSBAugmentation,
-    VQVAEAugmentation,
     FusionAugmentation,
 )
 
 preprocess_logger = logging.getLogger("AugmentationPipeline")
 
 PAIRED_AUGS = ["miamix", "mixup", "fusion"]
-IMAGE_FORMAT = "png"  # could be made a parameter later
+IMAGE_FORMAT = "png"
 
-def ensure_vqvae_trained(dataset_name, data_dir="./.data", weights_dir="./weights", device="cpu", epochs=3, train_size=0.9, test_size=0.1):
-    weights_path = f"{weights_dir}/vqvae_{dataset_name}.pt"
-    if not os.path.exists(weights_path):
-        preprocess_logger.info(f"Training VQ-VAE for {dataset_name} (no weights at {weights_path})")
-        from augmentations.vqvae.trainer import train_vqvae
-        train_vqvae(dataset_name=dataset_name, data_dir=data_dir, device=device, epochs=epochs, train_size=train_size, test_size=test_size)
-    else:
-        preprocess_logger.info(f"Found trained VQ-VAE for {dataset_name} at {weights_path}")
-    return weights_path
+AUG_IMAGE_MODE = {
+    "traditional": 1,
+    "lsb": 1,
+    "miamix": 2,
+    "mixup": 2,
+    "fusion": 2,
+}
 
-def get_augmentation(dataset_name, aug_type: str, vqvae_weight_path=None, device="cpu"):
+def get_augmentation(dataset_name, aug_type: str, device="cpu"):
     AUGS = {
         "traditional": TraditionalAugmentation(),
         "miamix": MiAMixAugmentation(),
@@ -38,12 +34,7 @@ def get_augmentation(dataset_name, aug_type: str, vqvae_weight_path=None, device
         "lsb": LSBAugmentation(),
         "fusion": FusionAugmentation()
     }
-    if aug_type == "vqvae":
-        vqvae_weight_path = vqvae_weight_path or f"./weights/vqvae_{dataset_name}.pt"
-        if not os.path.exists(vqvae_weight_path):
-            ensure_vqvae_trained(dataset_name, weights_dir="./weights", device=device)
-        return VQVAEAugmentation(model_path=vqvae_weight_path, device=device)
-    elif aug_type in AUGS:
+    if aug_type in AUGS:
         return AUGS[aug_type]
     elif aug_type in [None, "", "none"]:
         return None
@@ -97,8 +88,6 @@ def preprocess_data(
     raw_data_dir="./.data",
     out_root="./processed",
     device="cpu",
-    vqvae_weight_path=None,
-    vqvae_epochs=3,
     train_size=None,
     test_size=None,
 ):
@@ -109,14 +98,10 @@ def preprocess_data(
     elif test_size is None:
         test_size = 1.0 - train_size
 
-    if augmentation_type == "vqvae" and vqvae_weight_path is None:
-        vqvae_weight_path = ensure_vqvae_trained(
-            dataset_name, data_dir=raw_data_dir, device=device, epochs=vqvae_epochs, train_size=train_size, test_size=test_size
-        )
+    aug = get_augmentation(dataset_name, augmentation_type, device=device)
+    required_images = AUG_IMAGE_MODE.get(augmentation_type, 1)
 
-    aug = get_augmentation(dataset_name, augmentation_type, vqvae_weight_path, device=device)
-
-    if augmentation_type in PAIRED_AUGS:
+    if required_images == 2:
         transform = transforms.Compose([
             transforms.Grayscale(num_output_channels=3) if dataset_name == "mnist" else transforms.Lambda(lambda x: x),
             transforms.Resize((64, 64)),
@@ -127,26 +112,40 @@ def preprocess_data(
         transform = get_transform(dataset_name, augmentation=aug)
 
     full_dataset = load_base_dataset(dataset_name, transform, data_dir=raw_data_dir)
+    total_size = len(full_dataset)
+    train_len = int(total_size * train_size)
+    test_len = total_size - train_len
+
+    preprocess_logger.info(f"Dataset: {dataset_name} | Total images: {total_size}")
+    preprocess_logger.info(f"Train/Test split: {train_size*100:.1f}%/{test_size*100:.1f}% => Train: {train_len}, Test: {test_len}")
+
     train_dataset, test_dataset = split_dataset(full_dataset, train_size=train_size, test_size=test_size)
 
     train_out_dir = os.path.join(out_root, dataset_name, "train", augmentation_type if augmentation_type else "none")
     os.makedirs(train_out_dir, exist_ok=True)
+
     if not is_preprocessed(train_out_dir, len(train_dataset)):
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
         img_count = 0
         for batch_idx, (images, labels) in enumerate(tqdm(train_loader, desc=f"Saving {dataset_name}-train-{augmentation_type}")):
-            for i in range(images.size(0)):
-                save_path = os.path.join(train_out_dir, f"{img_count:05d}.{IMAGE_FORMAT}")
-                if augmentation_type in PAIRED_AUGS:
+
+            if required_images == 1:
+                for i in range(images.size(0)):
+                    save_path = os.path.join(train_out_dir, f"{img_count:05d}.{IMAGE_FORMAT}")
+                    save_image(images[i], save_path)
+                    img_count += 1
+
+            elif required_images == 2:
+                for i in range(images.size(0)):
                     j = (i + 1) % images.size(0)
                     img1 = transforms.ToPILImage()(images[i].cpu())
                     img2 = transforms.ToPILImage()(images[j].cpu())
                     img_aug = aug(img1, img2)
                     img_aug = transforms.ToTensor()(img_aug)
+                    save_path = os.path.join(train_out_dir, f"{img_count:05d}.{IMAGE_FORMAT}")
                     save_image(img_aug, save_path)
-                else:
-                    save_image(images[i], save_path)
-                img_count += 1
+                    img_count += 1
+
         tqdm.write(f"Saved {img_count} images to {train_out_dir}")
         save_metadata(train_out_dir, {
             "dataset": dataset_name,
@@ -160,6 +159,7 @@ def preprocess_data(
 
     test_out_dir = os.path.join(out_root, dataset_name, "test")
     os.makedirs(test_out_dir, exist_ok=True)
+
     if not is_preprocessed(test_out_dir, len(test_dataset)):
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
         img_count = 0
@@ -187,3 +187,32 @@ def preprocess_data(
         "augmentation": augmentation_type,
         "image_format": IMAGE_FORMAT
     }
+
+def preprocess_all(
+    dataset="all",
+    augmentation="all",
+    batch_size=64,
+    train_size=0.8,
+    test_size=0.2,
+    device="cpu"
+):
+    datasets_to_run = ["cifar10", "mnist", "imagenet"] if dataset == "all" else [dataset]
+    augs_to_run = ["traditional", "miamix", "mixup", "lsb", "fusion"] if augmentation == "all" else [augmentation]
+
+    for ds in datasets_to_run:
+        for aug in augs_to_run:
+            preprocess_logger.info(f"Preprocessing dataset '{ds}' with augmentation '{aug}'")
+            try:
+                result = preprocess_data(
+                    dataset_name=ds,
+                    augmentation_type=aug,
+                    batch_size=batch_size,
+                    raw_data_dir="./.data",
+                    out_root="./processed",
+                    device=device,
+                    train_size=train_size,
+                    test_size=test_size,
+                )
+                preprocess_logger.info(f"✅ Done: {result}")
+            except Exception as e:
+                preprocess_logger.error(f"❌ Failed for {ds}-{aug}: {str(e)}")
