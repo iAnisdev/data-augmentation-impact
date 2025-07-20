@@ -8,6 +8,7 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 from augmentations import (
     TraditionalAugmentation,
+    AutoAugmentAugmentation,
     MiAMixAugmentation,
     MixupAugmentation,
     LSBAugmentation,
@@ -20,6 +21,7 @@ PAIRED_AUGS = ["miamix", "mixup", "fusion"]
 IMAGE_FORMAT = "png"
 
 AUG_IMAGE_MODE = {
+    "auto": 1,
     "traditional": 1,
     "lsb": 1,
     "miamix": 2,
@@ -29,6 +31,7 @@ AUG_IMAGE_MODE = {
 
 def get_augmentation(dataset_name, aug_type: str, device="cpu"):
     AUGS = {
+        "auto": AutoAugmentAugmentation(),
         "traditional": TraditionalAugmentation(),
         "miamix": MiAMixAugmentation(),
         "mixup": MixupAugmentation(),
@@ -200,10 +203,11 @@ def preprocess_all(
     if batch_size is None:
         if device == "cuda":
             batch_size = 256
-    else:
-        batch_size = 64
+        else:
+            batch_size = 64
+
     datasets_to_run = ["cifar10", "mnist", "imagenet"] if dataset == "all" else [dataset]
-    augs_to_run = ["traditional", "miamix", "mixup", "lsb", "fusion"] if augmentation == "all" else [augmentation]
+    augs_to_run = ["auto", "traditional", "miamix", "mixup", "lsb", "fusion"] if augmentation == "all" else [augmentation]
 
     table_rows = []
 
