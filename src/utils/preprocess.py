@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import torch
 from tabulate import tabulate 
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, random_split
@@ -108,16 +109,37 @@ def preprocess_data(
     aug = get_augmentation(dataset_name, augmentation_type, device=device)
     required_images = AUG_IMAGE_MODE.get(augmentation_type, 1)
 
+    preprocess_logger.info(f"Using batch size: {batch_size}")
+    
     if augmentation_type == "gan":
         out_dir = os.path.join(out_root, dataset_name, "train", "gan")
         os.makedirs(out_dir, exist_ok=True)
-        if not is_preprocessed(out_dir, batch_size):
+
+        # Calculate number of GAN images based on real dataset split
+        transform = transforms.Compose([
+            transforms.Grayscale(num_output_channels=3) if dataset_name == "mnist" else transforms.Lambda(lambda x: x),
+            transforms.Resize((64, 64)),
+            transforms.ToTensor(),
+        ])
+        base_dataset = load_base_dataset(dataset_name, transform, data_dir=raw_data_dir)
+        total_size = len(base_dataset)
+        train_len = int(total_size * train_size)
+
+        if not is_preprocessed(out_dir, train_len):
             img_count = 0
-            for _ in tqdm(range(batch_size), desc=f"Generating GAN images"):
-                img = aug()
-                save_path = os.path.join(out_dir, f"{img_count:05d}.{IMAGE_FORMAT}")
-                save_image(img, save_path)
-                img_count += 1
+            progress_bar = tqdm(total=train_len, desc=f"Generating {train_len} GAN images")
+
+            while img_count < train_len:
+                current_batch_size = min(batch_size, train_len - img_count)
+                imgs = aug(batch_size=current_batch_size)
+                for i in range(current_batch_size):
+                    save_path = os.path.join(out_dir, f"{img_count:05d}.{IMAGE_FORMAT}")
+                    save_image(imgs[i], save_path)
+                    img_count += 1
+                    progress_bar.update(1)
+
+            progress_bar.close()
+
             save_metadata(out_dir, {
                 "dataset": dataset_name,
                 "augmentation": "gan",
@@ -127,10 +149,11 @@ def preprocess_data(
             })
         else:
             tqdm.write(f"Skipping existing: {out_dir}")
+
         return {
             "train_dir": out_dir,
             "test_dir": None,
-            "train_count": batch_size,
+            "train_count": train_len,
             "test_count": 0,
             "augmentation": "gan",
             "image_format": IMAGE_FORMAT
@@ -232,10 +255,11 @@ def preprocess_all(
     device="cpu"
 ):
     if batch_size is None:
-        if device == "cuda":
-            batch_size = 256
-        else:
-            batch_size = 64
+        is_cuda = (
+            (isinstance(device, str) and device.startswith("cuda")) or
+            (isinstance(device, torch.device) and device.type == "cuda")
+        )
+        batch_size = 256 if is_cuda else 64
 
     datasets_to_run = ["cifar10", "mnist", "imagenet"] if dataset == "all" else [dataset]
     augs_to_run = ["auto", "traditional", "miamix", "mixup", "lsb", "fusion", "gan"] if augmentation == "all" else [augmentation]
