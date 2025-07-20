@@ -1,21 +1,21 @@
 import argparse
 import logging
 import sys
-import os
 from utils.datasets import download_dataset
-from utils.preprocess import preprocess_data
+from utils.preprocess import preprocess_all
+
 
 def setup_logger():
     """Configure logger to output to console and file."""
     logger = logging.getLogger("AugmentationPipeline")
     logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(message)s')
+    formatter = logging.Formatter("[%(levelname)s] %(asctime)s - %(message)s")
 
     ch = logging.StreamHandler(sys.stdout)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    fh = logging.FileHandler('run.log')
+    fh = logging.FileHandler("run.log")
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
@@ -23,10 +23,6 @@ def setup_logger():
 
 def main():
     logger = setup_logger()
-
-    SUPPORTED_DATASETS = ["cifar10", "mnist", "imagenet"]
-    SUPPORTED_AUGS = ["traditional", "miamix", "mixup", "lsb", "vqvae", "fusion"]
-
     parser = argparse.ArgumentParser(
         description="Image Augmentation and Classification CLI"
     )
@@ -86,55 +82,29 @@ def main():
     logger.info(f"Starting CLI with arguments: {vars(args)}")
 
     if args.load_data:
-        logger.info("Action: Download datasets selected.")
+        logger.info("Downloading datasets...")
         download_dataset(args.dataset)
+
     if args.preprocess:
-        download_dataset(args.dataset)
-        datasets_to_run = (
-            SUPPORTED_DATASETS if args.dataset == "all" else [args.dataset]
+        logger.info("Running preprocessing pipeline...")
+        preprocess_all(
+            dataset=args.dataset,
+            augmentation=args.augment,
+            batch_size=args.batch_size,
+            train_size=0.8,
+            test_size=0.2,
+            device="cpu",
         )
-        augs_to_run = SUPPORTED_AUGS if args.augment == "all" else [args.augment]
 
-        for ds in datasets_to_run:
-            for aug in augs_to_run:
-                logger.info(f"Preprocessing {ds} with {aug}")
-                vqvae_weight_path = None
-                if aug == "vqvae":
-                    vqvae_weight_path = f"./weights/vqvae_{ds}.pt"
-                    if not os.path.exists(vqvae_weight_path):
-                        logger.error(f"Missing VQ-VAE weights for dataset '{ds}': expected at {vqvae_weight_path}")
-                        sys.exit(1)
-                result = preprocess_data(
-                    dataset_name=ds,
-                    augmentation_type=aug,
-                    batch_size=args.batch_size,
-                    raw_data_dir="./.data",
-                    out_root="./processed",
-                    device="cpu",
-                    vqvae_weight_path=vqvae_weight_path,
-                    train_size=0.8,
-                    test_size=0.2,
-                )
-                logger.info(f"Preprocessing result: {result}")
-        logger.info("Action: Preprocess and clean data selected.")
+    # Placeholder logs for train/eval
     if args.train:
-        logger.info(
-            f"Action: Train model selected. Model: {args.model}, Dataset: {args.dataset}, Augmentation: {args.augment}"
-        )
+        logger.info(f"Train model: {args.model} on {args.dataset} with {args.augment}")
     if args.evaluate:
-        logger.info("Action: Evaluate models selected.")
+        logger.info("Evaluate models")
     if args.all:
-        logger.info(
-            f"Action: Run full pipeline. Model: {args.model}, Dataset: {args.dataset}, Augmentation: {args.augment}"
-        )
+        logger.info(f"Run full pipeline with model {args.model}")
 
-    if args.augment:
-        logger.info(f"Augmentation method: {args.augment}")
-
-    if args.config:
-        logger.info(f"Using configuration file: {args.config}")
-
-    logger.info("Pipeline setup complete. (No computation performed yet)")
+    logger.info("Pipeline execution complete.")
 
 
 if __name__ == "__main__":
