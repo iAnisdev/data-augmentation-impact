@@ -6,8 +6,6 @@ from utils.datasets import download_dataset
 from utils.preprocess import preprocess_all
 from utils.vqvae_pipeline import get_vqvae_model, apply_vqvae
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
 def setup_logger():
     """Configure logger to output to console and file."""
     logger = logging.getLogger("AugmentationPipeline")
@@ -83,7 +81,10 @@ def main():
     args = parser.parse_args()
 
     logger.info(f"Starting CLI with arguments: {vars(args)}")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    logger.info(f"Processing using {device}")
+    
     if args.load_data:
         logger.info("Downloading datasets...")
         download_dataset(args.dataset)
