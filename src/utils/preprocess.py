@@ -13,6 +13,7 @@ from augmentations import (
     MixupAugmentation,
     LSBAugmentation,
     FusionAugmentation,
+    BigGANAugmentation,
 )
 
 preprocess_logger = logging.getLogger("AugmentationPipeline")
@@ -27,6 +28,7 @@ AUG_IMAGE_MODE = {
     "miamix": 2,
     "mixup": 2,
     "fusion": 2,
+    "gan": 1,
 }
 
 def get_augmentation(dataset_name, aug_type: str, device="cpu"):
@@ -36,7 +38,8 @@ def get_augmentation(dataset_name, aug_type: str, device="cpu"):
         "miamix": MiAMixAugmentation(),
         "mixup": MixupAugmentation(),
         "lsb": LSBAugmentation(),
-        "fusion": FusionAugmentation()
+        "fusion": FusionAugmentation(),
+        "gan": BigGANAugmentation(device=device),
     }
     if aug_type in AUGS:
         return AUGS[aug_type]
@@ -104,6 +107,34 @@ def preprocess_data(
 
     aug = get_augmentation(dataset_name, augmentation_type, device=device)
     required_images = AUG_IMAGE_MODE.get(augmentation_type, 1)
+
+    if augmentation_type == "gan":
+        out_dir = os.path.join(out_root, dataset_name, "train", "gan")
+        os.makedirs(out_dir, exist_ok=True)
+        if not is_preprocessed(out_dir, batch_size):
+            img_count = 0
+            for _ in tqdm(range(batch_size), desc=f"Generating GAN images"):
+                img = aug()
+                save_path = os.path.join(out_dir, f"{img_count:05d}.{IMAGE_FORMAT}")
+                save_image(img, save_path)
+                img_count += 1
+            save_metadata(out_dir, {
+                "dataset": dataset_name,
+                "augmentation": "gan",
+                "split": "train",
+                "count": img_count,
+                "image_format": IMAGE_FORMAT,
+            })
+        else:
+            tqdm.write(f"Skipping existing: {out_dir}")
+        return {
+            "train_dir": out_dir,
+            "test_dir": None,
+            "train_count": batch_size,
+            "test_count": 0,
+            "augmentation": "gan",
+            "image_format": IMAGE_FORMAT
+        }
 
     if required_images == 2:
         transform = transforms.Compose([
@@ -207,7 +238,7 @@ def preprocess_all(
             batch_size = 64
 
     datasets_to_run = ["cifar10", "mnist", "imagenet"] if dataset == "all" else [dataset]
-    augs_to_run = ["auto", "traditional", "miamix", "mixup", "lsb", "fusion"] if augmentation == "all" else [augmentation]
+    augs_to_run = ["auto", "traditional", "miamix", "mixup", "lsb", "fusion", "gan"] if augmentation == "all" else [augmentation]
 
     table_rows = []
 
@@ -227,10 +258,9 @@ def preprocess_all(
 
     preprocess_logger.info("Dataset Augmentation Plan:")
     table = tabulate(table_rows, headers=["Dataset", "Augmentation", "Train Size", "Test Size"], tablefmt="fancy_grid")
-    
+
     for line in table.split("\n"):
         preprocess_logger.info(line)
-
 
     for ds in datasets_to_run:
         for aug in augs_to_run:
