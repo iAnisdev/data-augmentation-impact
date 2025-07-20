@@ -192,11 +192,16 @@ def preprocess_data(
 def preprocess_all(
     dataset="all",
     augmentation="all",
-    batch_size=64,
+    batch_size=None,
     train_size=0.8,
     test_size=0.2,
     device="cpu"
 ):
+    if batch_size is None:
+        if device == "cuda":
+            batch_size = 256
+    else:
+        batch_size = 64
     datasets_to_run = ["cifar10", "mnist", "imagenet"] if dataset == "all" else [dataset]
     augs_to_run = ["traditional", "miamix", "mixup", "lsb", "fusion"] if augmentation == "all" else [augmentation]
 
