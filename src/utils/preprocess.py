@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from tabulate import tabulate 
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, random_split
 from torchvision.utils import save_image
@@ -198,6 +199,29 @@ def preprocess_all(
 ):
     datasets_to_run = ["cifar10", "mnist", "imagenet"] if dataset == "all" else [dataset]
     augs_to_run = ["traditional", "miamix", "mixup", "lsb", "fusion"] if augmentation == "all" else [augmentation]
+
+    table_rows = []
+
+    for ds in datasets_to_run:
+        transform = transforms.Compose([
+            transforms.Grayscale(num_output_channels=3) if ds == "mnist" else transforms.Lambda(lambda x: x),
+            transforms.Resize((64, 64)),
+            transforms.ToTensor(),
+        ])
+        base_dataset = load_base_dataset(ds, transform)
+        total = len(base_dataset)
+        train_count = int(total * train_size)
+        test_count = total - train_count
+
+        for aug in augs_to_run:
+            table_rows.append([ds, aug, train_count, test_count])
+
+    preprocess_logger.info("Dataset Augmentation Plan:")
+    table = tabulate(table_rows, headers=["Dataset", "Augmentation", "Train Size", "Test Size"], tablefmt="fancy_grid")
+    
+    for line in table.split("\n"):
+        preprocess_logger.info(line)
+
 
     for ds in datasets_to_run:
         for aug in augs_to_run:
