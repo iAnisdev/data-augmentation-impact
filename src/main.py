@@ -55,7 +55,7 @@ def main():
         "--aug",
         type=str,
         default="all",
-        choices=["all", "auto", "traditional", "miamix", "mixup", "lsb", "vqvae", "fusion"],
+        choices=["all", "auto", "traditional", "miamix", "mixup", "lsb", "vqvae", "gan", "fusion"],
         help="Specify augmentation strategy",
     )
     parser.add_argument(
@@ -90,6 +90,7 @@ def main():
 
     if args.preprocess:
         logger.info("Running preprocessing pipeline...")
+
         if args.augment in ["vqvae", "all"]:
             model = get_vqvae_model(args.dataset, device=device)
             apply_vqvae(args.dataset, model, device=device, batch_size=args.batch_size)
