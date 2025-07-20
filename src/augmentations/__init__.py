@@ -1,3 +1,4 @@
+from .auto import AutoAugmentAugmentation
 from .base import Augmentation
 from .traditional import TraditionalAugmentation
 from .miamix import MiAMixAugmentation
@@ -8,6 +9,7 @@ from .fusion import FusionAugmentation
 
 __all__ = [
     "Augmentation",
+    "AutoAugmentAugmentation",
     "TraditionalAugmentation",
     "MiAMixAugmentation",
     "MixupAugmentation",
