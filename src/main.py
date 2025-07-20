@@ -1,9 +1,10 @@
 import argparse
 import logging
 import sys
+import torch 
 from utils.datasets import download_dataset
 from utils.preprocess import preprocess_all
-import torch 
+from utils.vqvae_pipeline import get_vqvae_model, apply_vqvae
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -89,6 +90,10 @@ def main():
 
     if args.preprocess:
         logger.info("Running preprocessing pipeline...")
+        if args.augment in ["vqvae", "all"]:
+            model = get_vqvae_model(args.dataset, device=device)
+            apply_vqvae(args.dataset, model, device=device, batch_size=args.batch_size)
+            
         preprocess_all(
             dataset=args.dataset,
             augmentation=args.augment,
