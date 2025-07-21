@@ -321,13 +321,16 @@ def preprocess_all(
         ["cifar10", "mnist", "imagenet"] if dataset == "all" else [dataset]
     )
     augs_to_run = (
-        ["auto", "traditional", "miamix", "mixup", "lsb", "fusion", "gan"]
+        ["auto", "traditional", "miamix", "mixup", "lsb", "fusion", "gan", "vqvae"]
         if augmentation == "all"
         else [augmentation]
     )
 
-    table_rows = []
+    if "vqvae" in augs_to_run:
+        preprocess_logger.info("⚠️ Skipping VQ-VAE in standard preprocess. It will be handled via VQ-VAE pipeline.")
+        augs_to_run = [aug for aug in augs_to_run if aug != "vqvae"]
 
+    table_rows = []
     for ds in datasets_to_run:
         transform = transforms.Compose(
             [
@@ -354,7 +357,6 @@ def preprocess_all(
         headers=["Dataset", "Augmentation", "Train Size", "Test Size"],
         tablefmt="fancy_grid",
     )
-
     for line in table.split("\n"):
         preprocess_logger.info(line)
 
