@@ -364,9 +364,6 @@ def preprocess_all(
 
     for ds in datasets_to_run:
         for aug in augs_to_run:
-            if ds == "mnist" and aug == "gan":
-                preprocess_logger.info("❌ Skipping GAN for MNIST...")
-                continue
             preprocess_logger.info(
                 f"Preprocessing dataset '{ds}' with augmentation '{aug}'"
             )
