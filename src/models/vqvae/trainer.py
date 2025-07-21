@@ -2,6 +2,7 @@ from .model import VQVAE
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 import torch, os
 
 import logging
@@ -37,6 +38,8 @@ def train_vqvae(dataset_name="cifar10", data_dir="./data", device="cpu", epochs=
     model = VQVAE().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=2e-4)
 
+    losses_per_epoch = []
+
     for epoch in range(epochs):
         epoch_loss = 0
         n_batches = 0
@@ -49,10 +52,28 @@ def train_vqvae(dataset_name="cifar10", data_dir="./data", device="cpu", epochs=
             epoch_loss += loss.item()
             n_batches += 1
         avg_loss = epoch_loss / n_batches
+        losses_per_epoch.append(avg_loss)
         logger.info(f"Epoch {epoch+1} Avg Loss: {avg_loss:.4f}")
 
-    save_path = f"./weights/vqvae_{dataset_name}.pt"
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    torch.save(model.state_dict(), save_path)
-    logger.info(f"Model saved to {save_path}")
+    # Save model and loss curve
+    model_dir = f"./weights/{dataset_name}_vqvae"
+    os.makedirs(model_dir, exist_ok=True)
+    
+    model_path = os.path.join(model_dir, "generator.pt")
+    torch.save(model.state_dict(), model_path)
+    logger.info(f"Model saved to {model_path}")
+
+    # Save loss curve plot
+    plt.figure()
+    plt.plot(losses_per_epoch, marker="o", label="Loss")
+    plt.title(f"VQ-VAE Loss Curve: {dataset_name}")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.grid(True)
+    plt.legend()
+    loss_plot_path = os.path.join(model_dir, "loss_curve.png")
+    plt.savefig(loss_plot_path)
+    plt.close()
+    logger.info(f"Loss curve saved to {loss_plot_path}")
+
     return model
