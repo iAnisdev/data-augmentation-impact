@@ -327,7 +327,6 @@ def preprocess_all(
     )
 
     if "vqvae" in augs_to_run:
-        preprocess_logger.info("⚠️ Skipping VQ-VAE in standard preprocess. It will be handled via VQ-VAE pipeline.")
         augs_to_run = [aug for aug in augs_to_run if aug != "vqvae"]
 
     table_rows = []
