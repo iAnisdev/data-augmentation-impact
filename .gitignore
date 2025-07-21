@@ -198,3 +198,6 @@ cython_debug/
 *.ipynb
 
 processed/
+
+weights/gan_mnist/fid_fake/
+weights/gan_mnist/fid_real/
