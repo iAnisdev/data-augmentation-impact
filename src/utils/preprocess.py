@@ -34,10 +34,6 @@ AUG_IMAGE_MODE = {
 
 
 def get_augmentation(dataset_name, aug_type: str, device="cpu"):
-    if dataset_name == "mnist" and aug_type == "gan":
-        preprocess_logger.warning("Skipping GAN augmentation for MNIST (unsupported).")
-        return None
-
     AUGS = {
         "auto": AutoAugmentAugmentation(),
         "traditional": TraditionalAugmentation(),
