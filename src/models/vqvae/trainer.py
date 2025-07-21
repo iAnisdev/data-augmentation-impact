@@ -1,9 +1,14 @@
-from .model import VQVAE
-from torchvision import transforms, datasets
-from torch.utils.data import DataLoader, random_split
-from tqdm import tqdm
+import os
+import torch
+import json
 import matplotlib.pyplot as plt
-import torch, os
+from tqdm import tqdm
+from torch.utils.data import DataLoader, random_split
+from torchvision import transforms, datasets
+from torchvision.utils import save_image
+from pytorch_fid import fid_score
+
+from .model import VQVAE
 
 import logging
 
@@ -75,5 +80,47 @@ def train_vqvae(dataset_name="cifar10", data_dir="./data", device="cpu", epochs=
     plt.savefig(loss_plot_path)
     plt.close()
     logger.info(f"Loss curve saved to {loss_plot_path}")
+
+    # ========== FID PREP ========== #
+    fid_real_dir = os.path.join(model_dir, "fid_real")
+    fid_fake_dir = os.path.join(model_dir, "fid_fake")
+    os.makedirs(fid_real_dir, exist_ok=True)
+    os.makedirs(fid_fake_dir, exist_ok=True)
+
+    to_pil = transforms.ToPILImage()
+    to_tensor = transforms.ToTensor()
+
+    # Collect 1000 real images
+    for idx, (img, _) in enumerate(DataLoader(train_dataset, batch_size=1)):
+        save_image(img.squeeze(0), os.path.join(fid_real_dir, f"{idx:05d}.png"))
+        if idx >= 999: break
+
+    # Collect 1000 reconstructed (fake) images
+    model.eval()
+    img_count = 0
+    with torch.no_grad():
+        for x, _ in DataLoader(train_dataset, batch_size=1):
+            x = x.to(device)
+            z, _ = model.encode(x)
+            recon = model.decode(z)
+            recon = recon.clamp(0, 1).cpu()
+            save_image(recon.squeeze(0), os.path.join(fid_fake_dir, f"{img_count:05d}.png"))
+            img_count += 1
+            if img_count >= 1000: break
+
+    # Compute FID
+    fid_value = fid_score.calculate_fid_given_paths(
+        [fid_real_dir, fid_fake_dir],
+        batch_size=64,
+        device=device,
+        dims=2048
+    )
+
+    fid_path = os.path.join(model_dir, "fid_score.json")
+    with open(fid_path, "w") as f:
+        json.dump({"fid": fid_value}, f, indent=2)
+
+    logger.info(f"✅ FID Score for {dataset_name} VQ-VAE: {fid_value:.2f}")
+    logger.info(f"FID saved to {fid_path}")
 
     return model
