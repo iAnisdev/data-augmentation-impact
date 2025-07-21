@@ -13,6 +13,18 @@ def save_metadata(out_dir, metadata):
     with open(os.path.join(out_dir, "meta.json"), "w") as f:
         json.dump(metadata, f, indent=2)
 
+def get_dataset_loader(name):
+    if name == "cifar10":
+        return lambda root, transform: datasets.CIFAR10(root=root, train=True, download=True, transform=transform)
+    elif name == "mnist":
+        return lambda root, transform: datasets.MNIST(root=root, train=True, download=True, transform=transform)
+    elif name == "imagenet":
+        return lambda root, transform: datasets.ImageFolder(
+            os.path.join(root, "tiny-imagenet-200", "train"), transform=transform
+        )
+    else:
+        raise ValueError(f"Unsupported dataset: {name}")
+
 def get_vqvae_model(dataset_name, weights_dir="./weights", device="cpu", retrain=False):
     datasets_list = ["cifar10", "mnist", "imagenet"] if dataset_name == "all" else [dataset_name]
     models = {}
@@ -47,15 +59,8 @@ def apply_vqvae(dataset_name, model, device="cpu", out_root="./processed", batch
         transform.append(transforms.ToTensor())
         transform = transforms.Compose(transform)
 
-        dataset_cls = {
-            "cifar10": datasets.CIFAR10,
-            "mnist": datasets.MNIST,
-            "imagenet": lambda root, transform: datasets.ImageFolder(
-                os.path.join(root, "tiny-imagenet-200", "train"), transform=transform
-            ),
-        }[ds]
-
-        dataset = dataset_cls(root="./.data", train=True, download=True, transform=transform)
+        dataset_loader = get_dataset_loader(ds)
+        dataset = dataset_loader(root="./.data", transform=transform)
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
         out_dir = os.path.join(out_root, ds, "train", "vqvae")
