@@ -92,14 +92,15 @@ def main():
     if args.preprocess:
         logger.info("Running preprocessing pipeline...")
         download_dataset(args.dataset)
-        preprocess_all(
-            dataset=args.dataset,
-            augmentation=args.augment,
-            batch_size=args.batch_size,
-            train_size=0.8,
-            test_size=0.2,
-            device=device,
-        )
+        if args.augment != "vqvae":
+            preprocess_all(
+                dataset=args.dataset,
+                augmentation=args.augment,
+                batch_size=args.batch_size,
+                train_size=0.8,
+                test_size=0.2,
+                device=device,
+            )
 
         if args.augment in ["vqvae", "all"]:
             model = get_vqvae_model(args.dataset, device=device)
