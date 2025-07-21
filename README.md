@@ -107,11 +107,11 @@ python src/main.py --all --config experiments/configs/baseline_resnet_cifar10.ya
 
 | Argument     | Description                                                            | Default    |
 | ------------ | ---------------------------------------------------------------------- | ---------- |
-| --model      | Model to train (`cnn`, `resnet`, `efficientnet`)                       | `cnn`      |
 | --dataset    | Dataset to use (`all`,`cifar10`, `mnist`, `imagenet`)                  | `all`      |
-| --augment    | Augmentation method (`none`, `traditional`, `advanced`, `auto`, `gan`) | `none`     |
+| --augment    | Augmentation method (`all`, `auto`, `traditional`, `miamix`, `mixup`, `lsb`, `vqvae`, `gan`, `fusion`) | `all`     |
+| --model      | Model to train (`cnn`, `resnet`, `efficientnet`)                       | `cnn`      |
 | --epochs     | Number of training epochs                                              | `20`       |
-| --batch-size | Batch size                                                             | `64`       |
+| --batch-size | Batch size (For CPU and GPU)                                          | `64`, `256`|
 | --config     | Path to config file for advanced setups                                | _optional_ |
 
 _See `python src/main.py --help` for the full list of options and descriptions._
