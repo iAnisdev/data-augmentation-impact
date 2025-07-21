@@ -36,7 +36,7 @@ def get_vqvae_model(dataset_name, weights_dir="./weights", device="cpu", retrain
 
         if not os.path.exists(model_path) or retrain:
             logger.info(f"Training VQ-VAE model for {ds}...")
-            train_vqvae(dataset_name=ds, data_dir="./.data", device=device, epochs=20)
+            train_vqvae(dataset_name=ds, data_dir="./.data", device=device, epochs=35)
         else:
             logger.info(f"Using existing VQ-VAE model: {model_path}")
 
