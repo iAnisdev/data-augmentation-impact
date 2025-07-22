@@ -2,7 +2,7 @@ import argparse
 import logging
 import sys
 import torch 
-from utils.datasets import download_dataset
+from pipelines.load.downloader import download_dataset
 from utils.preprocess import preprocess_all
 from utils.vqvae_pipeline import get_vqvae_model, apply_vqvae
 
