@@ -2,8 +2,12 @@ import argparse
 import logging
 import sys
 import torch
-from pipelines.load._init__ import download_dataset, verify_dataset_exists
-from pipelines.preprocess.__init__ import run_preprocessing_pipeline
+from pipelines.load._init__ import download_dataset
+from pipelines.preprocess.__init__ import (
+    run_preprocessing_pipeline,
+    verify_preprocessed_split,
+)
+
 
 def setup_logger():
     """Configure logger to output to console and file."""
@@ -69,8 +73,8 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="cnn",
-        choices=["cnn", "resnet", "efficientnet"],
+        default="all",
+        choices=["all", "cnn", "resnet", "efficientnet"],
         help="Model to train",
     )
     parser.add_argument(
@@ -112,6 +116,7 @@ def main():
 
     if args.train:
         logger.info(f"Train model: {args.model} on {args.dataset} with {args.augment}")
+        verify_preprocessed_split(dataset=args.dataset, augmentation=args.augment)
     if args.evaluate:
         logger.info("Evaluate models")
     if args.all:
