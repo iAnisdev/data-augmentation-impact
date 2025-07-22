@@ -3,12 +3,11 @@ import urllib.request
 import zipfile
 from torchvision import datasets
 from tqdm import tqdm
+from .config import SUPPORTED_DATASETS
 
 import logging
 
 logger = logging.getLogger("AugmentationPipeline")
-
-SUPPORTED_DATASETS = ["cifar10", "mnist", "imagenet"]
 
 DATASET_DIR_NAMES = {
     "cifar10": "cifar-10-batches-py",
