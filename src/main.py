@@ -1,10 +1,12 @@
 import argparse
 import logging
 import sys
-import torch 
-from pipelines.load.downloader import download_dataset
+import torch
+from pipelines.load._init__ import download_dataset, verify_dataset_exists
+
 from utils.preprocess import preprocess_all
 from utils.vqvae_pipeline import get_vqvae_model, apply_vqvae
+
 
 def setup_logger():
     """Configure logger to output to console and file."""
@@ -21,6 +23,7 @@ def setup_logger():
     logger.addHandler(fh)
 
     return logger
+
 
 def main():
     logger = setup_logger()
@@ -53,7 +56,17 @@ def main():
         "--aug",
         type=str,
         default="all",
-        choices=["all", "auto", "traditional", "miamix", "mixup", "lsb", "vqvae", "gan", "fusion"],
+        choices=[
+            "all",
+            "auto",
+            "traditional",
+            "miamix",
+            "mixup",
+            "lsb",
+            "vqvae",
+            "gan",
+            "fusion",
+        ],
         help="Specify augmentation strategy",
     )
     parser.add_argument(
@@ -84,14 +97,14 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     logger.info(f"Processing using {device}")
-    
+
     if args.load_data:
         logger.info("Downloading datasets...")
         download_dataset(args.dataset)
 
     if args.preprocess:
         logger.info("Running preprocessing pipeline...")
-        download_dataset(args.dataset)
+        verify_dataset_exists(args.dataset)
         if args.augment != "vqvae":
             preprocess_all(
                 dataset=args.dataset,
@@ -105,7 +118,6 @@ def main():
         if args.augment in ["vqvae", "all"]:
             model = get_vqvae_model(args.dataset, device=device)
             apply_vqvae(args.dataset, model, device=device, batch_size=args.batch_size)
-            
     # Placeholder logs for train/eval
     if args.train:
         logger.info(f"Train model: {args.model} on {args.dataset} with {args.augment}")
