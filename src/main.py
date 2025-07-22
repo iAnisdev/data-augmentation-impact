@@ -3,10 +3,7 @@ import logging
 import sys
 import torch
 from pipelines.load._init__ import download_dataset, verify_dataset_exists
-
-from utils.preprocess import preprocess_all
-from utils.vqvae_pipeline import get_vqvae_model, apply_vqvae
-
+from pipelines.preprocess.__init__ import run_preprocessing_pipeline
 
 def setup_logger():
     """Configure logger to output to console and file."""
@@ -104,21 +101,15 @@ def main():
 
     if args.preprocess:
         logger.info("Running preprocessing pipeline...")
-        verify_dataset_exists(args.dataset)
-        if args.augment != "vqvae":
-            preprocess_all(
-                dataset=args.dataset,
-                augmentation=args.augment,
-                batch_size=args.batch_size,
-                train_size=0.8,
-                test_size=0.2,
-                device=device,
-            )
+        run_preprocessing_pipeline(
+            dataset=args.dataset,
+            augmentation=args.augment,
+            batch_size=args.batch_size,
+            train_size=0.8,
+            test_size=0.2,
+            device=device,
+        )
 
-        if args.augment in ["vqvae", "all"]:
-            model = get_vqvae_model(args.dataset, device=device)
-            apply_vqvae(args.dataset, model, device=device, batch_size=args.batch_size)
-    # Placeholder logs for train/eval
     if args.train:
         logger.info(f"Train model: {args.model} on {args.dataset} with {args.augment}")
     if args.evaluate:
