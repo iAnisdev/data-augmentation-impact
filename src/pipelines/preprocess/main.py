@@ -1,5 +1,5 @@
 import logging
-from pipelines.load import verify_dataset_exists
+from pipelines.load._init__ import verify_dataset_exists
 from .vqvae_pipeline import get_vqvae_model, apply_vqvae
 from .base_preprocess import preprocess_all
 
