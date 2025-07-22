@@ -1,5 +1,6 @@
 import logging
-from .downloader import SUPPORTED_DATASETS, check_dataset_exists, get_data_root
+from .downloader import check_dataset_exists, get_data_root
+from .config import SUPPORTED_DATASETS
 
 logger = logging.getLogger("AugmentationPipeline")
 
