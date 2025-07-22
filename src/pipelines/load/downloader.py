@@ -10,21 +10,21 @@ logger = logging.getLogger("AugmentationPipeline")
 
 SUPPORTED_DATASETS = ["cifar10", "mnist", "imagenet"]
 
+DATASET_DIR_NAMES = {
+    "cifar10": "cifar-10-batches-py",
+    "mnist": "MNIST",
+    "imagenet": "tiny-imagenet-200",
+}
+
 def get_data_root():
     return os.path.join(".", ".data")
 
-
 def check_dataset_exists(dataset_name):
     data_root = get_data_root()
-    if dataset_name == "cifar10":
-        return os.path.exists(os.path.join(data_root, "cifar-10-batches-py"))
-    elif dataset_name == "mnist":
-        return os.path.exists(os.path.join(data_root, "MNIST"))
-    elif dataset_name == "imagenet":
-        return os.path.exists(os.path.join(data_root, "imagenet"))
-    else:
+    folder = DATASET_DIR_NAMES.get(dataset_name.lower())
+    if folder is None:
         raise ValueError(f"Unknown dataset: {dataset_name}")
-
+    return os.path.exists(os.path.join(data_root, folder))
 
 def download_tiny_imagenet(data_root):
     url = "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
