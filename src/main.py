@@ -5,7 +5,7 @@ import torch
 from pipelines.load._init__ import download_dataset
 from pipelines.preprocess.__init__ import (
     run_preprocessing_pipeline,
-    verify_preprocessed_split,
+    verify_all_preprocessed,
 )
 
 
@@ -115,8 +115,8 @@ def main():
         )
 
     if args.train:
-        logger.info(f"Train model: {args.model} on {args.dataset} with {args.augment}")
-        verify_preprocessed_split(dataset=args.dataset, augmentation=args.augment)
+        logger.info(f"Train model: {args.model} on dataset {args.dataset} with augment: {args.augment}")
+        verify_all_preprocessed(dataset=args.dataset, augmentation=args.augment)
     if args.evaluate:
         logger.info("Evaluate models")
     if args.all:
