@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from .config import SUPPORTED_AUGMENTATIONS
+from ..load.config import SUPPORTED_DATASETS
 
 logger = logging.getLogger("AugmentationPipeline")
 IMAGE_FORMAT = "png"
@@ -63,7 +64,7 @@ def verify_all_preprocessed(
     root: str = "./.preprocess",
     image_format: str = IMAGE_FORMAT,
 ):
-    datasets_to_check = ["cifar10", "mnist", "imagenet"] if dataset == "all" else [dataset]
+    datasets_to_check = SUPPORTED_DATASETS if dataset == "all" else [dataset]
     augmentations_to_check = SUPPORTED_AUGMENTATIONS if augmentation == "all" else [augmentation]
 
     for ds in datasets_to_check:
