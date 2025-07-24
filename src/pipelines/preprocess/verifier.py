@@ -61,13 +61,15 @@ def verify_preprocessed_split(
 def verify_all_preprocessed(
     dataset: str,
     augmentation: str,
-    root: str = "./.preprocess",
+    root: str = "./processed",
     image_format: str = IMAGE_FORMAT,
 ):
     datasets_to_check = SUPPORTED_DATASETS if dataset == "all" else [dataset]
     augmentations_to_check = SUPPORTED_AUGMENTATIONS if augmentation == "all" else [augmentation]
 
     for ds in datasets_to_check:
+        if ds is "cifar":
+            ds = "cifar10"
         # Always verify test set
         if not verify_preprocessed_split(ds, split="test", root=root, image_format=image_format):
             raise FileNotFoundError(f"Test set missing or corrupted for dataset: {ds}")
