@@ -74,7 +74,7 @@ def main():
         "--model",
         type=str,
         default="all",
-        choices=["all", "cnn", "resnet", "efficientnet"],
+        choices=["all", "cnn", "resnet18", "resnet50", "efficientnet"],
         help="Model to train",
     )
     parser.add_argument(
@@ -88,6 +88,10 @@ def main():
         "--epochs", type=int, default=20, help="Number of training epochs"
     )
     parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
+    parser.add_argument(
+        "--pretrained", action="store_true", 
+        help="Use pretrained models (ResNet/EfficientNet only)"
+    )
     parser.add_argument(
         "--config", "-c", type=str, help="Path to config file (YAML/JSON)"
     )
@@ -115,12 +119,70 @@ def main():
         )
 
     if args.train:
-        logger.info(f"Train model: {args.model} on dataset {args.dataset} with augment: {args.augment}")
+        logger.info(f"Training model: {args.model} on dataset {args.dataset} with augment: {args.augment}")
         verify_all_preprocessed(dataset=args.dataset, augmentation=args.augment)
+        
+        # Import training pipeline
+        from pipelines.train.train_pipeline import train_single_model, train_all_models
+        
+        if args.model == "all":
+            train_all_models(
+                dataset_name=args.dataset,
+                augmentation=args.augment,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                pretrained=args.pretrained,
+                device=device
+            )
+        else:
+            train_single_model(
+                model_name=args.model,
+                dataset_name=args.dataset,
+                augmentation=args.augment,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                pretrained=args.pretrained,
+                device=device
+            )
+            
     if args.evaluate:
         logger.info("Evaluate models")
+        # TODO: Implement evaluation pipeline
+        
     if args.all:
         logger.info(f"Run full pipeline with model {args.model}")
+        # Download data
+        download_dataset(args.dataset)
+        # Preprocess
+        run_preprocessing_pipeline(
+            dataset=args.dataset,
+            augmentation=args.augment,
+            batch_size=args.batch_size,
+            train_size=0.8,
+            test_size=0.2,
+            device=device,
+        )
+        # Train
+        from pipelines.train.train_pipeline import train_single_model, train_all_models
+        if args.model == "all":
+            train_all_models(
+                dataset_name=args.dataset,
+                augmentation=args.augment,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                pretrained=args.pretrained,
+                device=device
+            )
+        else:
+            train_single_model(
+                model_name=args.model,
+                dataset_name=args.dataset,
+                augmentation=args.augment,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                pretrained=args.pretrained,
+                device=device
+            )
 
     logger.info("Pipeline execution complete.")
 
