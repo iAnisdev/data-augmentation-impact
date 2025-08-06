@@ -218,7 +218,7 @@ def preprocess_data(
         out_root,
         dataset_name,
         "train",
-        augmentation_type if augmentation_type else "none",
+        augmentation_type,
     )
     os.makedirs(train_out_dir, exist_ok=True)
 
