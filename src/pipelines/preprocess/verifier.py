@@ -68,7 +68,7 @@ def verify_all_preprocessed(
     augmentations_to_check = SUPPORTED_AUGMENTATIONS if augmentation == "all" else [augmentation]
 
     for ds in datasets_to_check:
-        if ds is "cifar":
+        if ds == "cifar":
             ds = "cifar10"
         # Always verify test set
         if not verify_preprocessed_split(ds, split="test", root=root, image_format=image_format):
@@ -78,3 +78,84 @@ def verify_all_preprocessed(
         for aug in augmentations_to_check:
             if not verify_preprocessed_split(ds, aug, split="train", root=root, image_format=image_format):
                 raise FileNotFoundError(f"Train set missing for dataset '{ds}' and augmentation '{aug}'")
+
+
+def verify_datasets_ready_for_training(
+    dataset: str,
+    augmentation: str,
+    root: str = "./processed",
+    image_format: str = IMAGE_FORMAT,
+):
+    """
+    Verifies that processed datasets are ready for training.
+    Checks both test and train datasets with proper augmentation support.
+    Called before training starts to ensure all required data is available.
+    """
+    logger.info("🔍 Verifying processed datasets are ready for training...")
+    
+    datasets_to_check = SUPPORTED_DATASETS if dataset == "all" else [dataset]
+    augmentations_to_check = SUPPORTED_AUGMENTATIONS if augmentation == "all" else [augmentation]
+    
+    missing_datasets = []
+    empty_datasets = []
+    
+    for ds in datasets_to_check:
+        if ds == "cifar":
+            ds = "cifar10"
+            
+        logger.info(f"📊 Checking dataset: {ds}")
+        
+        # Check if dataset directory exists
+        dataset_path = os.path.join(root, ds)
+        if not os.path.exists(dataset_path):
+            missing_datasets.append(ds)
+            logger.error(f"❌ Dataset directory missing: {dataset_path}")
+            continue
+            
+        # Check test set (no augmentation)
+        test_path = os.path.join(dataset_path, "test")
+        if not os.path.exists(test_path):
+            missing_datasets.append(f"{ds}/test")
+            logger.error(f"❌ Test directory missing: {test_path}")
+        else:
+            test_count = count_images_in_dir(test_path, image_format)
+            if test_count == 0:
+                empty_datasets.append(f"{ds}/test")
+                logger.error(f"❌ Test set is empty: {test_path}")
+            else:
+                logger.info(f"✅ Test set verified: {test_count} images in {ds}/test")
+        
+        # Check train sets with augmentations
+        for aug in augmentations_to_check:
+            if aug == "traditional":
+                # Traditional augmentation uses base train directory
+                train_path = os.path.join(dataset_path, "train")
+            else:
+                # Other augmentations have their own subdirectories
+                train_path = os.path.join(dataset_path, "train", aug)
+                
+            if not os.path.exists(train_path):
+                missing_datasets.append(f"{ds}/train/{aug}")
+                logger.error(f"❌ Train directory missing: {train_path}")
+            else:
+                train_count = count_images_in_dir(train_path, image_format)
+                if train_count == 0:
+                    empty_datasets.append(f"{ds}/train/{aug}")
+                    logger.error(f"❌ Train set is empty: {train_path}")
+                else:
+                    logger.info(f"✅ Train set verified: {train_count} images in {ds}/train/{aug}")
+    
+    # Report any issues
+    if missing_datasets:
+        raise FileNotFoundError(
+            f"Missing processed datasets: {missing_datasets}. "
+            f"Please run preprocessing with --preprocess flag first."
+        )
+        
+    if empty_datasets:
+        raise ValueError(
+            f"Empty processed datasets: {empty_datasets}. "
+            f"Please re-run preprocessing to generate data."
+        )
+    
+    logger.info("🎉 All datasets verified and ready for training!")
