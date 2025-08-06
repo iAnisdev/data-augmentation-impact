@@ -60,7 +60,7 @@ python src/main.py --all --model all --dataset cifar10 --augment traditional
 ### Available Options
 - **Models**: `cnn`, `resnet18`, `resnet50`, `efficientnet`, `all`
 - **Datasets**: `cifar10`, `mnist`, `imagenet`, `all`
-- **Augmentations**: `none`, `traditional`, `auto`, `mixup`, `miamix`, `lsb`, `vqvae`, `gan`, `fusion`, `all`
+- **Augmentations**: `traditional`, `auto`, `mixup`, `miamix`, `lsb`, `vqvae`, `gan`, `fusion`, `all`
 - **Flags**: `--pretrained` for ResNet/EfficientNet pretrained weights
 
 ## Output Files
