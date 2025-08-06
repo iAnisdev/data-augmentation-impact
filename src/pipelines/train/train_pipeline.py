@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 import os
 import json
+from tqdm import tqdm
 from models.factory import create_model, get_trainer_and_evaluator, count_parameters, get_model_summary
 
 logger = logging.getLogger("AugmentationPipeline")
@@ -133,7 +134,11 @@ def train_all_models(
     models_to_train = ["cnn", "resnet18", "resnet50", "efficientnet"]
     results = {}
     
-    for model_name in models_to_train:
+    # Progress bar for models
+    model_pbar = tqdm(models_to_train, desc=f"🔄 Training Models ({dataset_name}/{augmentation})", unit="model")
+    
+    for model_name in model_pbar:
+        model_pbar.set_description(f"🚀 Training {model_name} ({dataset_name}/{augmentation})")
         try:
             model, eval_results = train_single_model(
                 model_name=model_name,
@@ -147,9 +152,13 @@ def train_all_models(
             )
             results[model_name] = eval_results
             logger.info(f"✅ {model_name} training completed successfully")
+            model_pbar.set_postfix({"status": "✅ completed"})
         except Exception as e:
             logger.error(f"❌ Failed to train {model_name}: {str(e)}")
             results[model_name] = {"error": str(e)}
+            model_pbar.set_postfix({"status": "❌ failed"})
+    
+    model_pbar.close()
     
     # Save combined results
     combined_results = {

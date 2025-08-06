@@ -35,13 +35,25 @@ def train_model(
     }
 
     os.makedirs(log_dir, exist_ok=True)
+    
+    # Overall progress bar for epochs
+    epoch_pbar = tqdm(range(epochs), desc=f"🚀 Training {model_name}", unit="epoch", position=0)
 
-    for epoch in range(epochs):
+    for epoch in epoch_pbar:
         start_time = time.time()
         model.train()
         running_loss = 0.0
 
-        for images, labels in tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}"):
+        # Batch progress bar
+        batch_pbar = tqdm(
+            train_loader, 
+            desc=f"Epoch {epoch+1}/{epochs}", 
+            unit="batch", 
+            position=1, 
+            leave=False
+        )
+        
+        for images, labels in batch_pbar:
             images, labels = images.to(device), labels.to(device)
 
             optimizer.zero_grad()
@@ -54,16 +66,28 @@ def train_model(
             
             optimizer.step()
             running_loss += loss.item()
+            
+            # Update batch progress bar with current loss
+            batch_pbar.set_postfix({"batch_loss": f"{loss.item():.4f}"})
 
         avg_train_loss = running_loss / len(train_loader)
         epoch_duration = time.time() - start_time
 
-        # Validation
+        # Validation with progress bar
         model.eval()
         total_val_loss = 0.0
         correct, total = 0, 0
+        
+        val_pbar = tqdm(
+            val_loader, 
+            desc="Validating", 
+            unit="batch", 
+            position=1, 
+            leave=False
+        )
+        
         with torch.no_grad():
-            for images, labels in val_loader:
+            for images, labels in val_pbar:
                 images, labels = images.to(device), labels.to(device)
                 outputs = model(images)
                 loss = criterion(outputs, labels)
@@ -72,13 +96,21 @@ def train_model(
                 preds = torch.argmax(outputs, dim=1)
                 correct += (preds == labels).sum().item()
                 total += labels.size(0)
+                
+                # Update validation progress
+                current_acc = correct / total if total > 0 else 0
+                val_pbar.set_postfix({"val_acc": f"{current_acc:.4f}"})
 
         avg_val_loss = total_val_loss / len(val_loader)
         val_accuracy = correct / total
 
-        print(
-            f"[{epoch+1}] Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Val Acc: {val_accuracy:.4f} | LR: {scheduler.get_last_lr()[0]:.6f}"
-        )
+        # Update epoch progress bar with metrics
+        epoch_pbar.set_postfix({
+            "train_loss": f"{avg_train_loss:.4f}",
+            "val_loss": f"{avg_val_loss:.4f}",
+            "val_acc": f"{val_accuracy:.4f}",
+            "lr": f"{scheduler.get_last_lr()[0]:.6f}"
+        })
 
         log_data["epochs"].append(
             {
@@ -92,6 +124,9 @@ def train_model(
         )
 
         scheduler.step()
+
+    # Close the epoch progress bar
+    epoch_pbar.close()
 
     # Save logs to JSON
     filename = f"train_log_{model_name}_{dataset_name}_{augmentation}.json"
