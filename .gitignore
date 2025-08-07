@@ -201,3 +201,4 @@ processed/
 
 weights/gan_mnist/fid_fake/
 weights/gan_mnist/fid_real/
+.DS_Store
