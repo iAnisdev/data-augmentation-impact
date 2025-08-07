@@ -193,12 +193,22 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-#.data
+# Data directories
 .data/
 *.ipynb
 
+# Processed datasets (large files)
 processed/
+process/
 
+# Temporary download files
+temp_zips/
+test_download/
+
+# Model weights and artifacts
 weights/gan_mnist/fid_fake/
 weights/gan_mnist/fid_real/
+.artifacts/
+
+# System files
 .DS_Store
