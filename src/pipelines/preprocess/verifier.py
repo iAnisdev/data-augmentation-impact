@@ -1,11 +1,26 @@
 import os
 import json
 import logging
+import zipfile
+import tempfile
+import shutil
 from .config import SUPPORTED_AUGMENTATIONS
 from ..load.config import SUPPORTED_DATASETS
 
 logger = logging.getLogger("AugmentationPipeline")
+
+# Optional HF import with fallback
+try:
+    from huggingface_hub import hf_hub_download
+    HF_AVAILABLE = True
+except ImportError:
+    HF_AVAILABLE = False
+    logger.warning("huggingface_hub not available. Dataset auto-download disabled.")
+
 IMAGE_FORMAT = "png"
+
+# Hugging Face dataset configuration
+HF_USERNAME = "ianisdev"  # Your HF username
 
 
 def count_images_in_dir(directory, ext=IMAGE_FORMAT):
@@ -159,3 +174,241 @@ def verify_datasets_ready_for_training(
         )
     
     logger.info("🎉 All datasets verified and ready for training!")
+
+
+def download_augmented_trainset_from_hf(dataset_name, augmentation="augmented", root="./processed", max_retries=3):
+    """
+    Download complete augmented dataset from Hugging Face Hub and extract it
+    This includes both test and train data with all augmentation types
+    """
+    if not HF_AVAILABLE:
+        logger.error("❌ huggingface_hub not available. Please install with: pip install huggingface_hub")
+        return False
+    
+    # The repo is named {dataset}_augmented but contains {dataset}.zip
+    repo_name = f"{dataset_name}_augmented"
+    repo_id = f"{HF_USERNAME}/{repo_name}"
+    zip_filename = f"{dataset_name}.zip"  # File is named {dataset}.zip, not {dataset}_augmented.zip
+    
+    logger.info(f"📥 Downloading {dataset_name} complete dataset from HF Hub...")
+    
+    for attempt in range(max_retries):
+        try:
+            # Download ZIP file with fresh cache directory each time
+            cache_dir = tempfile.mkdtemp()
+            zip_path = hf_hub_download(
+                repo_id=repo_id,
+                filename=zip_filename,
+                repo_type="dataset",
+                cache_dir=cache_dir,
+                force_download=True  # Force fresh download on retries
+            )
+            
+            logger.info(f"✅ Downloaded {zip_filename}")
+            
+            # Create target directory structure
+            dataset_dir = os.path.join(root, dataset_name)
+            os.makedirs(dataset_dir, exist_ok=True)
+            
+            # Extract ZIP file to a temporary directory first
+            temp_extract_dir = tempfile.mkdtemp()
+            logger.info(f"📦 Extracting {zip_filename}...")
+            
+            # Extract with filtering and error tolerance
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                extracted_files = 0
+                corrupted_files = 0
+                
+                for file_info in zip_ref.filelist:
+                    # Skip macOS metadata files
+                    if file_info.filename.startswith('__MACOSX/') or '._' in file_info.filename:
+                        logger.debug(f"Skipping macOS metadata file: {file_info.filename}")
+                        continue
+                    
+                    try:
+                        # Extract individual file
+                        zip_ref.extract(file_info, temp_extract_dir)
+                        extracted_files += 1
+                    except (zipfile.BadZipFile, Exception) as e:
+                        logger.warning(f"⚠️  Skipping corrupted file: {file_info.filename} ({e})")
+                        corrupted_files += 1
+                        continue
+                
+                logger.info(f"📊 Extraction complete: {extracted_files} files extracted, {corrupted_files} files skipped")
+                
+                # If too many files are corrupted, consider it a failed attempt
+                if corrupted_files > extracted_files * 0.1:  # More than 10% corrupted
+                    raise zipfile.BadZipFile(f"Too many corrupted files: {corrupted_files}/{extracted_files + corrupted_files}")
+            
+            # The ZIP contains the full dataset structure: {dataset}/test/ and {dataset}/train/
+            # Move the extracted content to the proper location
+            extracted_dataset_dir = os.path.join(temp_extract_dir, dataset_name)
+            
+            if os.path.exists(extracted_dataset_dir):
+                # Move test directory
+                extracted_test_dir = os.path.join(extracted_dataset_dir, "test")
+                target_test_dir = os.path.join(dataset_dir, "test")
+                if os.path.exists(extracted_test_dir):
+                    if os.path.exists(target_test_dir):
+                        shutil.rmtree(target_test_dir)
+                    shutil.move(extracted_test_dir, target_test_dir)
+                    test_count = count_images_in_dir(target_test_dir, IMAGE_FORMAT)
+                    logger.info(f"✅ Extracted {test_count} test images to {target_test_dir}")
+                
+                # Move train directory
+                extracted_train_dir = os.path.join(extracted_dataset_dir, "train")
+                target_train_dir = os.path.join(dataset_dir, "train")
+                if os.path.exists(extracted_train_dir):
+                    if os.path.exists(target_train_dir):
+                        shutil.rmtree(target_train_dir)
+                    shutil.move(extracted_train_dir, target_train_dir)
+                    train_count = count_images_in_dir(target_train_dir, IMAGE_FORMAT)
+                    logger.info(f"✅ Extracted {train_count} training images to {target_train_dir}")
+            else:
+                raise FileNotFoundError(f"Expected directory {dataset_name} not found in ZIP")
+            
+            # Clean up temporary files
+            shutil.rmtree(temp_extract_dir)
+            shutil.rmtree(cache_dir)
+            
+            logger.info(f"🎉 Successfully downloaded and extracted complete {dataset_name} dataset!")
+            return True
+            
+        except (zipfile.BadZipFile, zipfile.LargeZipFile) as e:
+            logger.warning(f"⚠️  ZIP extraction issues on attempt {attempt + 1}/{max_retries}: {e}")
+            if attempt < max_retries - 1:
+                logger.info(f"🔄 Retrying download...")
+                # Clean up failed attempt
+                try:
+                    if 'temp_extract_dir' in locals():
+                        shutil.rmtree(temp_extract_dir)
+                    if 'cache_dir' in locals():
+                        shutil.rmtree(cache_dir)
+                except:
+                    pass
+            else:
+                logger.error(f"❌ All {max_retries} download attempts had extraction issues")
+                # Try to check if we got at least some useful data
+                try:
+                    if 'temp_extract_dir' in locals() and os.path.exists(temp_extract_dir):
+                        test_files = 0
+                        train_files = 0
+                        for root_dir, dirs, files in os.walk(temp_extract_dir):
+                            if '/test/' in root_dir:
+                                test_files += len([f for f in files if f.endswith('.png')])
+                            elif '/train/' in root_dir:
+                                train_files += len([f for f in files if f.endswith('.png')])
+                        
+                        if test_files > 100 and train_files > 1000:  # Minimum threshold
+                            logger.warning(f"⚠️  Proceeding with partial dataset: {test_files} test, {train_files} train images")
+                            # Continue with partial extraction
+                        else:
+                            logger.error(f"❌ Insufficient data extracted: {test_files} test, {train_files} train images")
+                            return False
+                    else:
+                        return False
+                except:
+                    return False
+        except Exception as e:
+            logger.error(f"❌ Failed to download {dataset_name} dataset from HF: {e}")
+            logger.info(f"💡 Tried repository: {repo_id}")
+            # Clean up on other errors
+            try:
+                if 'temp_extract_dir' in locals():
+                    shutil.rmtree(temp_extract_dir)
+                if 'cache_dir' in locals():
+                    shutil.rmtree(cache_dir)
+            except:
+                pass
+            return False
+    
+    return False
+
+
+def auto_setup_missing_datasets(
+    dataset: str,
+    augmentation: str,
+    root: str = "./processed",
+):
+    """
+    Automatically download and set up missing datasets from Hugging Face
+    Downloads augmented datasets which contain both test and train data
+    """
+    logger.info("🔍 Checking for missing datasets and attempting auto-download...")
+    
+    datasets_to_check = SUPPORTED_DATASETS if dataset == "all" else [dataset]
+    downloaded_any = False
+    
+    for ds in datasets_to_check:
+        if ds == "cifar":
+            ds = "cifar10"
+            
+        dataset_path = os.path.join(root, ds)
+        test_path = os.path.join(dataset_path, "test")
+        train_path = os.path.join(dataset_path, "train")
+        
+        logger.info(f"📊 Checking dataset: {ds}")
+        
+        # Check if we need to download the complete dataset
+        needs_download = False
+        
+        if not os.path.exists(test_path) or count_images_in_dir(test_path, IMAGE_FORMAT) == 0:
+            logger.info(f"❌ Test dataset missing for {ds}")
+            needs_download = True
+        
+        if not os.path.exists(train_path) or count_images_in_dir(train_path, IMAGE_FORMAT) == 0:
+            logger.info(f"❌ Training dataset missing for {ds}")
+            needs_download = True
+        
+        if needs_download:
+            logger.info(f"📥 Downloading complete {ds} dataset (test + train) from HF Hub...")
+            
+            if download_augmented_trainset_from_hf(ds, "all", root):
+                downloaded_any = True
+                logger.info(f"✅ Successfully downloaded complete {ds} dataset")
+            else:
+                logger.warning(f"⚠️  Could not auto-download {ds} dataset")
+                logger.info(f"💡 Alternative: Run preprocessing to generate data locally:")
+                logger.info(f"💡   python src/main.py --preprocess --dataset {ds} --augment all")
+        else:
+            logger.info(f"✅ Complete dataset found for {ds}")
+    
+    if downloaded_any:
+        logger.info("🎉 Successfully downloaded missing datasets!")
+        logger.info("📦 Downloaded datasets are ready for training!")
+    else:
+        logger.info("ℹ️  All datasets already available locally")
+    
+    return downloaded_any
+
+
+def smart_verify_datasets_ready_for_training(
+    dataset: str,
+    augmentation: str,
+    root: str = "./processed",
+    auto_download: bool = True,
+):
+    """
+    Enhanced verifier that can auto-download missing datasets
+    Downloads complete augmented datasets which include both test and train data
+    """
+    logger.info("🔍 Smart verification: checking datasets and auto-downloading if needed...")
+    
+    # First, try auto-download missing datasets
+    if auto_download:
+        auto_setup_missing_datasets(dataset, augmentation, root)
+    
+    # Then run normal verification
+    try:
+        verify_datasets_ready_for_training(dataset, augmentation, root)
+        logger.info("🎉 All datasets verified and ready for training!")
+        return True
+    except FileNotFoundError as e:
+        logger.error(f"❌ Dataset verification failed: {e}")
+        logger.info("💡 Tip: Complete datasets can be auto-downloaded from HF Hub")
+        logger.info(f"💡 Available: ianisdev/{{dataset}}_augmented (contains both test and train)")
+        logger.info("💡 Alternative: Run preprocessing with --preprocess flag")
+        return False
+    except Exception as e:
+        logger.error(f"❌ Verification error: {e}")
+        return False

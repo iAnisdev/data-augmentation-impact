@@ -5,7 +5,7 @@ import torch
 from pipelines.load._init__ import download_dataset
 from pipelines.preprocess.__init__ import (
     run_preprocessing_pipeline,
-    verify_datasets_ready_for_training,
+    smart_verify_datasets_ready_for_training,
 )
 
 
@@ -120,7 +120,7 @@ def main():
 
     if args.train:
         logger.info(f"Training model: {args.model} on dataset {args.dataset} with augment: {args.augment}")
-        verify_datasets_ready_for_training(dataset=args.dataset, augmentation=args.augment)
+        smart_verify_datasets_ready_for_training(dataset=args.dataset, augmentation=args.augment)
         
         # Import training pipeline
         from pipelines.train.train_pipeline import train_single_model, train_all_models
@@ -162,8 +162,8 @@ def main():
             test_size=0.2,
             device=device,
         )
-        # Verify datasets are ready for training
-        verify_datasets_ready_for_training(dataset=args.dataset, augmentation=args.augment)
+        # Verify datasets are ready for training (with auto-download)
+        smart_verify_datasets_ready_for_training(dataset=args.dataset, augmentation=args.augment)
         
         # Train
         from pipelines.train.train_pipeline import train_single_model, train_all_models
