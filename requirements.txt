@@ -14,6 +14,9 @@ seaborn>=0.12.0
 tqdm>=4.65.0
 Pillow>=10.0.0
 
+# Hugging Face integration
+huggingface_hub>=0.16.0
+
 # Jupyter for notebooks
 jupyter>=1.0.0
 ipykernel>=6.25.0
