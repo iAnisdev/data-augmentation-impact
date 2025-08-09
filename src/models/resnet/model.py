@@ -30,7 +30,7 @@ class BasicBlock(nn.Module):
 
 
 class Bottleneck(nn.Module):
-    """Bottleneck block for ResNet-50, ResNet-101, and ResNet-152"""
+    """Bottleneck block - keeping for potential future use but not used in ResNet-18"""
     expansion = 4
 
     def __init__(self, in_planes, planes, stride=1):
@@ -106,27 +106,12 @@ def ResNet18(num_classes=10, in_channels=3):
     return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes, in_channels=in_channels)
 
 
-def ResNet50(num_classes=10, in_channels=3):
-    """ResNet-50 model"""
-    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, in_channels=in_channels)
-
-
 # Alternative: Using torchvision pretrained models (more efficient for benchmarking)
 def get_pretrained_resnet18(num_classes=10, pretrained=True):
     """Get pretrained ResNet-18 from torchvision"""
     import torchvision.models as models
     
     model = models.resnet18(pretrained=pretrained)
-    # Modify the final layer for the specific number of classes
-    model.fc = nn.Linear(model.fc.in_features, num_classes)
-    return model
-
-
-def get_pretrained_resnet50(num_classes=10, pretrained=True):
-    """Get pretrained ResNet-50 from torchvision"""
-    import torchvision.models as models
-    
-    model = models.resnet50(pretrained=pretrained)
     # Modify the final layer for the specific number of classes
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model

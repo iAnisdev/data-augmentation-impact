@@ -3,7 +3,7 @@ Model factory for creating different model architectures
 """
 import torch
 from models.cnn.model import CNNModel
-from models.resnet.model import ResNet18, ResNet50, get_pretrained_resnet18, get_pretrained_resnet50
+from models.resnet.model import ResNet18, get_pretrained_resnet18
 from models.efficientnet.model import EfficientNetB0, get_pretrained_efficientnet_b0
 
 
@@ -34,7 +34,7 @@ def create_model(model_name, dataset_name, pretrained=False):
     Create model instance based on model name and dataset
     
     Args:
-        model_name: One of ['cnn', 'resnet18', 'resnet50', 'efficientnet']
+        model_name: One of ['cnn', 'resnet18', 'efficientnet']
         dataset_name: One of ['mnist', 'cifar10', 'imagenet']
         pretrained: Whether to use pretrained weights (for ResNet and EfficientNet)
     
@@ -61,17 +61,6 @@ def create_model(model_name, dataset_name, pretrained=False):
                 in_channels=config["in_channels"]
             )
     
-    elif model_name.lower() == "resnet50":
-        if pretrained:
-            return get_pretrained_resnet50(
-                num_classes=config["num_classes"]
-            )
-        else:
-            return ResNet50(
-                num_classes=config["num_classes"],
-                in_channels=config["in_channels"]
-            )
-    
     elif model_name.lower() in ["efficientnet", "efficientnet_b0"]:
         if pretrained:
             return get_pretrained_efficientnet_b0(
@@ -84,7 +73,7 @@ def create_model(model_name, dataset_name, pretrained=False):
             )
     
     else:
-        raise ValueError(f"Unsupported model: {model_name}. Choose from: cnn, resnet18, resnet50, efficientnet")
+        raise ValueError(f"Unsupported model: {model_name}. Choose from: cnn, resnet18, efficientnet")
 
 
 def get_trainer_and_evaluator(model_name):
@@ -102,7 +91,7 @@ def get_trainer_and_evaluator(model_name):
         from models.cnn.evaluator import evaluate_model
         return train_model, evaluate_model
     
-    elif model_name.lower() in ["resnet", "resnet18", "resnet50"]:
+    elif model_name.lower() in ["resnet", "resnet18"]:
         from models.resnet.trainer import train_model
         from models.resnet.evaluator import evaluate_model
         return train_model, evaluate_model
@@ -135,12 +124,6 @@ def get_model_summary():
             "role": "Benchmark comparison",
             "parameters": "~11M",
             "complexity": "Medium"
-        },
-        "ResNet-50": {
-            "description": "Deeper residual network with 50 layers",
-            "role": "Benchmark comparison",
-            "parameters": "~25M",
-            "complexity": "High"
         },
         "EfficientNet-B0": {
             "description": "Scalable, efficient CNN",

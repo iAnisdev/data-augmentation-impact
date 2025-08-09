@@ -74,7 +74,7 @@ def main():
         "--model",
         type=str,
         default="all",
-        choices=["all", "cnn", "resnet18", "resnet50", "efficientnet"],
+        choices=["all", "cnn", "resnet18", "efficientnet"],
         help="Model to train",
     )
     parser.add_argument(

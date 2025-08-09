@@ -131,7 +131,7 @@ def train_all_models(
     """
     Train all available models
     """
-    models_to_train = ["cnn", "resnet18", "resnet50", "efficientnet"]
+    models_to_train = ["cnn", "resnet18", "efficientnet"]
     results = {}
     
     # Progress bar for models
@@ -194,7 +194,7 @@ def train_all_combinations(
     if augmentations is None:
         augmentations = ["traditional", "auto", "mixup", "miamix"]  # Core augmentations
     if models is None:
-        models = ["cnn", "resnet18", "efficientnet"]  # Exclude ResNet50 to save time
+        models = ["cnn", "resnet18", "efficientnet"]  # Optimized for Colab compatibility
     
     all_results = {}
     

@@ -7,7 +7,7 @@ This document describes the three model architectures available in the data augm
 | Model | Description | Role in Thesis | Parameters | Complexity |
 |-------|-------------|----------------|------------|------------|
 | CNN | Standard deep learning model | Baseline, reference | ~300K | Low |
-| ResNet-18/50 | Deep CNN with residuals | Benchmark comparison | 11M/25M | Medium/High |
+| ResNet-18 | Deep CNN with residuals | Benchmark comparison | 11M | Medium |
 | EfficientNet-B0 | Scalable, efficient CNN | Benchmark comparison | ~5M | Medium-High |
 
 ## Detailed Model Descriptions
@@ -19,10 +19,9 @@ This document describes the three model architectures available in the data augm
 - **Purpose**: Establishes baseline performance for comparison
 - **Training**: Adam optimizer, CrossEntropyLoss
 
-### 2. ResNet-18/50 (Residual Networks)
+### 2. ResNet-18 (Residual Networks)
 - **Architecture**: Deep residual network with skip connections
-- **ResNet-18**: 18 layers with BasicBlocks
-- **ResNet-50**: 50 layers with Bottleneck blocks
+- **Layers**: 18 layers with BasicBlocks
 - **Features**: Batch normalization, residual connections
 - **Purpose**: Benchmark against state-of-the-art deep architectures
 - **Training**: Adam optimizer with learning rate scheduling
