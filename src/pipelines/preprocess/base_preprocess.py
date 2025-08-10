@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader, random_split
 from torchvision.utils import save_image
 from tqdm import tqdm
 from augmentations import (
-    TraditionalAugmentation,
     AutoAugmentAugmentation,
     MiAMixAugmentation,
     MixupAugmentation,

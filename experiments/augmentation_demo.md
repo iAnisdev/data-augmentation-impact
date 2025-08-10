@@ -156,7 +156,6 @@ The **mock VQ-VAE** allows us to prototype our pipeline now and will be upgraded
 
 ```python
 from augmentations import (
-    TraditionalAugmentation,
     MiAMixAugmentation,
     MixupAugmentation,
     LSBAugmentation,
@@ -184,7 +183,6 @@ This visualization helps compare how each augmentation affects different classes
 ```python
 augmentations_basic = [
     ("Original", lambda x: x),
-    ("Traditional", TraditionalAugmentation()),
     ("LSB", LSBAugmentation())
 ]
 aug_names = [name for name, _ in augmentations_basic]
