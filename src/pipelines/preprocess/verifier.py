@@ -390,7 +390,21 @@ def auto_setup_missing_datasets(
             logger.info(f"❌ Test dataset missing for {ds}")
             needs_download = True
         
-        if not os.path.exists(train_path) or count_images_in_dir(train_path, IMAGE_FORMAT) == 0:
+        # For train, check if there are any augmentation subdirectories with images
+        train_has_data = False
+        if os.path.exists(train_path):
+            # Check for direct images in train/
+            if count_images_in_dir(train_path, IMAGE_FORMAT) > 0:
+                train_has_data = True
+            else:
+                # Check for images in augmentation subdirectories
+                for item in os.listdir(train_path):
+                    subdir_path = os.path.join(train_path, item)
+                    if os.path.isdir(subdir_path) and count_images_in_dir(subdir_path, IMAGE_FORMAT) > 0:
+                        train_has_data = True
+                        break
+        
+        if not train_has_data:
             logger.info(f"❌ Training dataset missing for {ds}")
             needs_download = True
         
