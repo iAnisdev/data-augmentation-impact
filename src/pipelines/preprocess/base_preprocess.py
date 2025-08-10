@@ -36,7 +36,6 @@ AUG_IMAGE_MODE = {
 def get_augmentation(dataset_name, aug_type: str, device="cpu"):
     AUGS = {
         "auto": AutoAugmentAugmentation(),
-        "traditional": TraditionalAugmentation(),
         "miamix": MiAMixAugmentation(),
         "mixup": MixupAugmentation(),
         "lsb": LSBAugmentation(),

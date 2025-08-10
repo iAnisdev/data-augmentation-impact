@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import os
 import torch
 from pipelines.load._init__ import download_dataset
 from pipelines.preprocess.__init__ import (
@@ -116,6 +117,8 @@ def main():
             train_size=0.8,
             test_size=0.2,
             device=device,
+            max_train_samples=args.max_train_samples,
+            max_test_samples=args.max_test_samples,
         )
 
     if args.train:
@@ -129,11 +132,6 @@ def main():
         # Expand "all" parameters into actual lists
         datasets_to_train = SUPPORTED_DATASETS if args.dataset == "all" else [args.dataset]
         augmentations_to_train = SUPPORTED_AUGMENTATIONS if args.augment == "all" else [args.augment]
-        
-        # Remove "traditional" from augmentations if it's in the list, since we know it's not available
-        if "traditional" in augmentations_to_train:
-            logger.warning("⚠️  Skipping 'traditional' augmentation - not available in downloaded data")
-            augmentations_to_train = [aug for aug in augmentations_to_train if aug != "traditional"]
         
         # Train for each dataset-augmentation combination
         for dataset in datasets_to_train:
@@ -178,19 +176,48 @@ def main():
         
         # First, try to get preprocessed data from HF Hub
         logger.info("🔍 Checking for pre-processed datasets on Hugging Face...")
-        if smart_verify_datasets_ready_for_training(dataset=args.dataset, augmentation=args.augment):
-            logger.info("✅ Using pre-processed datasets from Hugging Face!")
-        else:
-            logger.info("📝 Pre-processed data not available, running local preprocessing...")
-            # Preprocess locally only if HF download failed
-            run_preprocessing_pipeline(
-                dataset=args.dataset,
-                augmentation=args.augment,
-                batch_size=args.batch_size,
-                train_size=0.8,
-                test_size=0.2,
-                device=device
-            )
+        
+        # Try to download from HF first
+        from pipelines.preprocess.verifier import auto_setup_missing_datasets, verify_datasets_ready_for_training
+        auto_setup_missing_datasets(args.dataset, args.augment)
+        
+        # Check what's still missing after HF download
+        try:
+            verify_datasets_ready_for_training(args.dataset, args.augment)
+            logger.info("✅ All datasets ready from Hugging Face!")
+        except Exception as e:
+            logger.info("📝 Some augmentations missing, running local preprocessing for missing ones...")
+            # Get list of missing augmentations and process only those
+            from pipelines.preprocess.config import SUPPORTED_AUGMENTATIONS
+            from pipelines.preprocess.verifier import count_images_in_dir
+            
+            datasets_to_check = [args.dataset] if args.dataset != "all" else ["cifar10", "mnist", "imagenet"]
+            augmentations_to_check = SUPPORTED_AUGMENTATIONS if args.augment == "all" else [args.augment]
+            
+            for ds in datasets_to_check:
+                if ds == "cifar":
+                    ds = "cifar10"
+                    
+                missing_augs = []
+                for aug in augmentations_to_check:
+                    train_path = os.path.join("./processed", ds, "train", aug)
+                    
+                    if not os.path.exists(train_path) or count_images_in_dir(train_path, "png") == 0:
+                        missing_augs.append(aug)
+                
+                # Process only missing augmentations
+                for aug in missing_augs:
+                    logger.info(f"🔄 Processing missing augmentation: {ds}/{aug}")
+                    run_preprocessing_pipeline(
+                        dataset=ds,
+                        augmentation=aug,
+                        batch_size=args.batch_size,
+                        train_size=0.8,
+                        test_size=0.2,
+                        device=device,
+                        max_train_samples=args.max_train_samples,
+                        max_test_samples=args.max_test_samples,
+                    )
         
         # Train
         from pipelines.train.train_pipeline import train_single_model, train_all_models
