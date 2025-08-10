@@ -40,7 +40,7 @@ def verify_preprocessed_split(
     augmentation: str = None,
     split: str = "train",
     expected_count: int = None,
-    root: str = "./.preprocess",
+    root: str = "./processed",
     image_format: str = IMAGE_FORMAT,
 ):
     if split == "train" and not augmentation:
@@ -188,11 +188,42 @@ def download_augmented_trainset_from_hf(dataset_name, augmentation="augmented", 
     # The repo is named {dataset}_augmented but contains {dataset}.zip
     repo_name = f"{dataset_name}_augmented"
     repo_id = f"{HF_USERNAME}/{repo_name}"
-    zip_filename = f"{dataset_name}.zip"  # File is named {dataset}.zip, not {dataset}_augmented.zip
+    zip_filename = f"{dataset_name}.zip"  # Expected filename
     
     logger.info(f"📥 Downloading {dataset_name} complete dataset from HF Hub...")
+    logger.info(f"📂 Repository: {repo_id}")
+    logger.info(f"📄 File: {zip_filename}")
+    
+    # Special handling for ImageNet (larger dataset)
+    if dataset_name == "imagenet":
+        logger.info("⚠️  ImageNet is a large dataset - download may take 10+ minutes")
+        max_retries = 2  # Fewer retries for large dataset
+    
+    # First, check what files are actually available in the repository
+    try:
+        from huggingface_hub import list_repo_files
+        available_files = list_repo_files(repo_id, repo_type="dataset")
+        zip_files = [f for f in available_files if f.endswith('.zip')]
+        
+        if zip_filename not in available_files:
+            if zip_files:
+                # Use the first available zip file
+                actual_filename = zip_files[0]
+                logger.warning(f"⚠️  Expected file {zip_filename} not found, using {actual_filename}")
+                zip_filename = actual_filename
+            else:
+                logger.error(f"❌ No ZIP files found in repository {repo_id}")
+                logger.info(f"💡 Available files: {available_files[:5]}")
+                return False
+        else:
+            logger.info(f"✅ Found expected file: {zip_filename}")
+            
+    except Exception as e:
+        logger.warning(f"⚠️  Could not list repository files: {e}")
+        logger.info("💡 Proceeding with expected filename...")
     
     for attempt in range(max_retries):
+        logger.info(f"📥 Attempt {attempt + 1}/{max_retries}: Starting download...")
         try:
             # Download ZIP file with fresh cache directory each time
             cache_dir = tempfile.mkdtemp()
@@ -204,7 +235,10 @@ def download_augmented_trainset_from_hf(dataset_name, augmentation="augmented", 
                 force_download=True  # Force fresh download on retries
             )
             
-            logger.info(f"✅ Downloaded {zip_filename}")
+            # Check file size
+            zip_size = os.path.getsize(zip_path)
+            zip_size_gb = zip_size / (1024**3)
+            logger.info(f"✅ Downloaded {zip_filename} ({zip_size_gb:.2f} GB)")
             
             # Create target directory structure
             dataset_dir = os.path.join(root, dataset_name)
