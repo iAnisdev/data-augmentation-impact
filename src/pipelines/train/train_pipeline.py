@@ -31,7 +31,33 @@ def load_processed_data(dataset_name, augmentation, batch_size=64, data_dir="./p
     # Training set: ALWAYS uses a specific augmentation technique
     # Test set: always clean/baseline for fair comparison across all augmentation techniques
     
-    train_dir = os.path.join(data_dir, dataset_name, "train", augmentation)
+    # For traditional augmentation, images are directly in train/ directory
+    # For other augmentations, they are in train/{augmentation}/ subdirectory
+    if augmentation == "traditional":
+        train_dir = os.path.join(data_dir, dataset_name, "train")
+        
+        # If traditional doesn't exist as direct images, check if there's a 'traditional' subdirectory
+        if not os.path.exists(train_dir) or len([f for f in os.listdir(train_dir) if f.endswith('.png')]) == 0:
+            traditional_subdir = os.path.join(train_dir, "traditional")
+            if os.path.exists(traditional_subdir):
+                train_dir = traditional_subdir
+                logger.info(f"Using traditional augmentation from subdirectory: {train_dir}")
+            else:
+                # Check what augmentations are actually available
+                available_augs = []
+                if os.path.exists(train_dir):
+                    for item in os.listdir(train_dir):
+                        item_path = os.path.join(train_dir, item)
+                        if os.path.isdir(item_path) and len([f for f in os.listdir(item_path) if f.endswith('.png')]) > 0:
+                            available_augs.append(item)
+                
+                raise FileNotFoundError(
+                    f"Traditional augmentation not found for {dataset_name}.\n"
+                    f"Available augmentations: {available_augs}\n"
+                    f"Use one of: python src/main.py --train --model <model> --dataset {dataset_name} --augment <augmentation>"
+                )
+    else:
+        train_dir = os.path.join(data_dir, dataset_name, "train", augmentation)
     
     # Test set is always the same clean baseline for all augmentation comparisons
     test_dir = os.path.join(data_dir, dataset_name, "test")
