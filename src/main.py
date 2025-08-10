@@ -120,30 +120,52 @@ def main():
 
     if args.train:
         logger.info(f"Training model: {args.model} on dataset {args.dataset} with augment: {args.augment}")
-        smart_verify_datasets_ready_for_training(dataset=args.dataset, augmentation=args.augment)
         
-        # Import training pipeline
+        # Import required modules for expansion
+        from pipelines.preprocess.config import SUPPORTED_AUGMENTATIONS
+        from pipelines.load.config import SUPPORTED_DATASETS
         from pipelines.train.train_pipeline import train_single_model, train_all_models
         
-        if args.model == "all":
-            train_all_models(
-                dataset_name=args.dataset,
-                augmentation=args.augment,
-                epochs=args.epochs,
-                batch_size=args.batch_size,
-                pretrained=args.pretrained,
-                device=device
-            )
-        else:
-            train_single_model(
-                model_name=args.model,
-                dataset_name=args.dataset,
-                augmentation=args.augment,
-                epochs=args.epochs,
-                batch_size=args.batch_size,
-                pretrained=args.pretrained,
-                device=device
-            )
+        # Expand "all" parameters into actual lists
+        datasets_to_train = SUPPORTED_DATASETS if args.dataset == "all" else [args.dataset]
+        augmentations_to_train = SUPPORTED_AUGMENTATIONS if args.augment == "all" else [args.augment]
+        
+        # Remove "traditional" from augmentations if it's in the list, since we know it's not available
+        if "traditional" in augmentations_to_train:
+            logger.warning("⚠️  Skipping 'traditional' augmentation - not available in downloaded data")
+            augmentations_to_train = [aug for aug in augmentations_to_train if aug != "traditional"]
+        
+        # Train for each dataset-augmentation combination
+        for dataset in datasets_to_train:
+            for augmentation in augmentations_to_train:
+                logger.info(f"🚀 Training model: {args.model} on dataset {dataset} with augment: {augmentation}")
+                
+                # Skip if dataset data is not available
+                try:
+                    smart_verify_datasets_ready_for_training(dataset=dataset, augmentation=augmentation)
+                except Exception as e:
+                    logger.warning(f"⚠️  Skipping {dataset} with {augmentation}: {e}")
+                    continue
+                
+                if args.model == "all":
+                    train_all_models(
+                        dataset_name=dataset,
+                        augmentation=augmentation,
+                        epochs=args.epochs,
+                        batch_size=args.batch_size,
+                        pretrained=args.pretrained,
+                        device=device
+                    )
+                else:
+                    train_single_model(
+                        model_name=args.model,
+                        dataset_name=dataset,
+                        augmentation=augmentation,
+                        epochs=args.epochs,
+                        batch_size=args.batch_size,
+                        pretrained=args.pretrained,
+                        device=device
+                    )
             
     if args.evaluate:
         logger.info("Evaluate models")
