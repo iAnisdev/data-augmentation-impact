@@ -68,19 +68,20 @@ def get_transform(dataset_name, augmentation=None):
 
 def load_base_dataset(dataset_name, transform, data_dir="./.data"):
     if dataset_name == "cifar10":
-        return datasets.CIFAR10(
+        dataset = datasets.CIFAR10(
             root=data_dir, train=True, download=True, transform=transform
         )
     elif dataset_name == "mnist":
-        return datasets.MNIST(
+        dataset = datasets.MNIST(
             root=data_dir, train=True, download=True, transform=transform
         )
     elif dataset_name == "imagenet":
-        return datasets.ImageFolder(
-            os.path.join(data_dir, "tiny-imagenet-200", "train"), transform=transform
-        )
+        imagenet_path = os.path.join(data_dir, "tiny-imagenet-200", "train")
+        dataset = datasets.ImageFolder(imagenet_path, transform=transform)
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
+    
+    return dataset
 
 
 def is_preprocessed(out_dir, expected_count):
@@ -92,8 +93,23 @@ def is_preprocessed(out_dir, expected_count):
 
 def split_dataset(dataset, train_size=0.9, test_size=0.1):
     n = len(dataset)
-    train_len = int(n * train_size)
+    
+    # Safety check for empty dataset
+    if n == 0:
+        raise ValueError(f"Cannot split empty dataset (0 samples)")
+    
+    # Ensure at least 1 sample for each split if dataset is very small
+    if n == 1:
+        return random_split(dataset, [1, 0])  # All data goes to train
+    
+    train_len = max(1, int(n * train_size))
     test_len = n - train_len
+    
+    # Ensure test_len is not negative
+    if test_len < 0:
+        train_len = n - 1
+        test_len = 1
+    
     return random_split(dataset, [train_len, test_len])
 
 

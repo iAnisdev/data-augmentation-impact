@@ -217,6 +217,11 @@ def main():
         
         # Train
         from pipelines.train.train_pipeline import train_single_model, train_all_models
+        from pipelines.preprocess.config import SUPPORTED_AUGMENTATIONS
+        
+        # Expand "all" augmentation parameter
+        augmentations_to_train = SUPPORTED_AUGMENTATIONS if args.augment == "all" else [args.augment]
+        
         if args.model == "all":
             train_all_models(
                 dataset_name=args.dataset,
@@ -226,6 +231,19 @@ def main():
                 pretrained=args.pretrained,
                 device=device
             )
+        elif args.augment == "all":
+            # Train single model on all augmentations
+            for augmentation in augmentations_to_train:
+                logger.info(f"🚀 Training {args.model} on {args.dataset} with {augmentation}")
+                train_single_model(
+                    model_name=args.model,
+                    dataset_name=args.dataset,
+                    augmentation=augmentation,
+                    epochs=args.epochs,
+                    batch_size=args.batch_size,
+                    pretrained=args.pretrained,
+                    device=device
+                )
         else:
             train_single_model(
                 model_name=args.model,
