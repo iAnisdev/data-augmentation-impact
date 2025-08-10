@@ -173,19 +173,26 @@ def main():
         
     if args.all:
         logger.info(f"Run full pipeline with model {args.model}")
-        # Download data
+        # Download raw data (for fallback)
         download_dataset(args.dataset)
-        # Preprocess
-        run_preprocessing_pipeline(
-            dataset=args.dataset,
-            augmentation=args.augment,
-            batch_size=args.batch_size,
-            train_size=0.8,
-            test_size=0.2,
-            device=device,
-        )
-        # Verify datasets are ready for training (with auto-download)
-        smart_verify_datasets_ready_for_training(dataset=args.dataset, augmentation=args.augment)
+        
+        # First, try to get preprocessed data from HF Hub
+        logger.info("🔍 Checking for pre-processed datasets on Hugging Face...")
+        if smart_verify_datasets_ready_for_training(dataset=args.dataset, augmentation=args.augment):
+            logger.info("✅ Using pre-processed datasets from Hugging Face!")
+        else:
+            logger.info("📝 Pre-processed data not available, running local preprocessing...")
+            # Preprocess locally only if HF download failed
+            run_preprocessing_pipeline(
+                dataset=args.dataset,
+                augmentation=args.augment,
+                batch_size=args.batch_size,
+                train_size=0.8,
+                test_size=0.2,
+                device=device,
+                max_train_samples=args.max_train_samples,
+                max_test_samples=args.max_test_samples,
+            )
         
         # Train
         from pipelines.train.train_pipeline import train_single_model, train_all_models
