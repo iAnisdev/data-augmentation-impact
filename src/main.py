@@ -3,8 +3,8 @@ import logging
 import sys
 import os
 import torch
-from pipelines.load._init__ import download_dataset
-from pipelines.preprocess.__init__ import (
+from pipelines.load import download_dataset
+from pipelines.preprocess import (
     run_preprocessing_pipeline,
     smart_verify_datasets_ready_for_training,
 )
