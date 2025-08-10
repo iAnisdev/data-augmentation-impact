@@ -189,9 +189,7 @@ def main():
                 batch_size=args.batch_size,
                 train_size=0.8,
                 test_size=0.2,
-                device=device,
-                max_train_samples=args.max_train_samples,
-                max_test_samples=args.max_test_samples,
+                device=device
             )
         
         # Train
