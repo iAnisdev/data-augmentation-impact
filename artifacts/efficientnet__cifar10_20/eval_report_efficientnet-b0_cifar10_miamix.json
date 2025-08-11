@@ -1,0 +1,193 @@
+{
+  "model": "efficientnet-b0",
+  "dataset": "cifar10",
+  "augmentation": "miamix",
+  "accuracy": 0.9255,
+  "precision": 0.8963,
+  "recall": 0.8768,
+  "f1_score": 0.8865,
+  "class_report": {
+    "airplane": {
+      "precision": 0.9901,
+      "recall": 1.0,
+      "f1-score": 0.995,
+      "support": 1000.0
+    },
+    "automobile": {
+      "precision": 0.9989,
+      "recall": 0.95,
+      "f1-score": 0.9738,
+      "support": 940.0
+    },
+    "bird": {
+      "precision": 0.9775,
+      "recall": 1.0,
+      "f1-score": 0.9886,
+      "support": 1000.0
+    },
+    "cat": {
+      "precision": 0.974,
+      "recall": 0.9822,
+      "f1-score": 0.9781,
+      "support": 953.0
+    },
+    "deer": {
+      "precision": 0.9862,
+      "recall": 1.0,
+      "f1-score": 0.993,
+      "support": 1000.0
+    },
+    "dog": {
+      "precision": 0.9801,
+      "recall": 0.997,
+      "f1-score": 0.9884,
+      "support": 987.0
+    },
+    "frog": {
+      "precision": 0.9917,
+      "recall": 0.9794,
+      "f1-score": 0.9855,
+      "support": 971.0
+    },
+    "horse": {
+      "precision": 0.9883,
+      "recall": 0.9567,
+      "f1-score": 0.9723,
+      "support": 971.0
+    },
+    "ship": {
+      "precision": 0.9807,
+      "recall": 0.9867,
+      "f1-score": 0.9837,
+      "support": 978.0
+    },
+    "truck": {
+      "precision": 0.9891,
+      "recall": 1.0,
+      "f1-score": 0.9945,
+      "support": 1000.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1000,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      893,
+      16,
+      5,
+      2,
+      16,
+      3,
+      2,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      1000,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      4,
+      936,
+      2,
+      0,
+      2,
+      2,
+      2,
+      4
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      1000,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      984,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      1,
+      5,
+      6,
+      1,
+      951,
+      6,
+      0,
+      0
+    ],
+    [
+      7,
+      0,
+      2,
+      13,
+      1,
+      2,
+      0,
+      929,
+      16,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      3,
+      1,
+      1,
+      1,
+      965,
+      5
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1000
+    ]
+  ]
+}

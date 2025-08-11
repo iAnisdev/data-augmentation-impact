@@ -1,0 +1,193 @@
+{
+  "model": "efficientnet-b0",
+  "dataset": "cifar10",
+  "augmentation": "lsb",
+  "accuracy": 0.8819,
+  "precision": 0.8541,
+  "recall": 0.8356,
+  "f1_score": 0.8447,
+  "class_report": {
+    "airplane": {
+      "precision": 0.9031,
+      "recall": 0.9877,
+      "f1-score": 0.9435,
+      "support": 972.0
+    },
+    "automobile": {
+      "precision": 0.9622,
+      "recall": 0.958,
+      "f1-score": 0.9601,
+      "support": 904.0
+    },
+    "bird": {
+      "precision": 0.9574,
+      "recall": 0.9792,
+      "f1-score": 0.9682,
+      "support": 963.0
+    },
+    "cat": {
+      "precision": 0.9558,
+      "recall": 0.905,
+      "f1-score": 0.9297,
+      "support": 884.0
+    },
+    "deer": {
+      "precision": 0.9553,
+      "recall": 0.9772,
+      "f1-score": 0.9661,
+      "support": 963.0
+    },
+    "dog": {
+      "precision": 0.9735,
+      "recall": 0.9129,
+      "f1-score": 0.9422,
+      "support": 884.0
+    },
+    "frog": {
+      "precision": 0.9695,
+      "recall": 0.9855,
+      "f1-score": 0.9774,
+      "support": 967.0
+    },
+    "horse": {
+      "precision": 0.9536,
+      "recall": 0.9249,
+      "f1-score": 0.939,
+      "support": 866.0
+    },
+    "ship": {
+      "precision": 0.9545,
+      "recall": 0.9419,
+      "f1-score": 0.9482,
+      "support": 913.0
+    },
+    "truck": {
+      "precision": 0.9688,
+      "recall": 0.962,
+      "f1-score": 0.9654,
+      "support": 1000.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      960,
+      2,
+      0,
+      1,
+      2,
+      0,
+      6,
+      1,
+      0,
+      0
+    ],
+    [
+      8,
+      866,
+      14,
+      0,
+      2,
+      7,
+      1,
+      0,
+      3,
+      3
+    ],
+    [
+      5,
+      3,
+      943,
+      9,
+      2,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      5,
+      5,
+      6,
+      800,
+      20,
+      3,
+      4,
+      17,
+      20,
+      4
+    ],
+    [
+      0,
+      1,
+      1,
+      5,
+      941,
+      2,
+      1,
+      10,
+      1,
+      1
+    ],
+    [
+      16,
+      8,
+      6,
+      3,
+      2,
+      807,
+      17,
+      8,
+      13,
+      4
+    ],
+    [
+      2,
+      2,
+      2,
+      3,
+      0,
+      2,
+      953,
+      2,
+      0,
+      1
+    ],
+    [
+      21,
+      8,
+      10,
+      0,
+      7,
+      6,
+      1,
+      801,
+      4,
+      8
+    ],
+    [
+      8,
+      5,
+      3,
+      16,
+      9,
+      2,
+      0,
+      1,
+      860,
+      9
+    ],
+    [
+      38,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      962
+    ]
+  ]
+}

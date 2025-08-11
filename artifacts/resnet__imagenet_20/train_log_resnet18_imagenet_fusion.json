@@ -1,0 +1,167 @@
+{
+  "model": "resnet18",
+  "dataset": "imagenet",
+  "augmentation": "fusion",
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 2.3312,
+      "val_loss": 2.3583,
+      "val_accuracy": 0.2144,
+      "learning_rate": 0.001,
+      "duration_sec": 61.20226789358362
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.0726,
+      "val_loss": 2.1882,
+      "val_accuracy": 0.3246,
+      "learning_rate": 0.001,
+      "duration_sec": 60.9659035793355
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.9015,
+      "val_loss": 1.9084,
+      "val_accuracy": 0.4358,
+      "learning_rate": 0.001,
+      "duration_sec": 51.75990313703072
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.6372,
+      "val_loss": 1.6301,
+      "val_accuracy": 0.5033,
+      "learning_rate": 0.001,
+      "duration_sec": 56.565602819923484
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.4896,
+      "val_loss": 1.4359,
+      "val_accuracy": 0.5692,
+      "learning_rate": 0.001,
+      "duration_sec": 56.81666521138021
+    },
+    {
+      "epoch": 6,
+      "train_loss": 1.3484,
+      "val_loss": 1.3811,
+      "val_accuracy": 0.6317,
+      "learning_rate": 0.001,
+      "duration_sec": 47.5412102530377
+    },
+    {
+      "epoch": 7,
+      "train_loss": 1.2479,
+      "val_loss": 1.2644,
+      "val_accuracy": 0.6942,
+      "learning_rate": 0.0001,
+      "duration_sec": 46.70694929987536
+    },
+    {
+      "epoch": 8,
+      "train_loss": 1.1256,
+      "val_loss": 1.1061,
+      "val_accuracy": 0.7092,
+      "learning_rate": 0.0001,
+      "duration_sec": 55.81270243220213
+    },
+    {
+      "epoch": 9,
+      "train_loss": 1.0579,
+      "val_loss": 1.0583,
+      "val_accuracy": 0.7729,
+      "learning_rate": 0.0001,
+      "duration_sec": 51.45912945882492
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.8866,
+      "val_loss": 0.9122,
+      "val_accuracy": 0.7958,
+      "learning_rate": 0.0001,
+      "duration_sec": 53.77942841411272
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.9152,
+      "val_loss": 0.9052,
+      "val_accuracy": 0.8114,
+      "learning_rate": 0.0001,
+      "duration_sec": 50.004857963291904
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.8413,
+      "val_loss": 0.8534,
+      "val_accuracy": 0.8397,
+      "learning_rate": 0.0001,
+      "duration_sec": 58.203947534354626
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.7639,
+      "val_loss": 0.7241,
+      "val_accuracy": 0.8671,
+      "learning_rate": 0.0001,
+      "duration_sec": 49.95461979002315
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.6798,
+      "val_loss": 0.6586,
+      "val_accuracy": 0.8995,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 45.287869772595116
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.6514,
+      "val_loss": 0.6508,
+      "val_accuracy": 0.8938,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 54.469435415611315
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.4921,
+      "val_loss": 0.4547,
+      "val_accuracy": 0.8999,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 52.970094687947466
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.5229,
+      "val_loss": 0.519,
+      "val_accuracy": 0.9359,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 57.51719831428473
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.4714,
+      "val_loss": 0.4717,
+      "val_accuracy": 0.9255,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 58.1738726323789
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.377,
+      "val_loss": 0.3964,
+      "val_accuracy": 0.9365,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 56.509483557517584
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.4176,
+      "val_loss": 0.3805,
+      "val_accuracy": 0.947,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 54.16505780983033
+    }
+  ]
+}

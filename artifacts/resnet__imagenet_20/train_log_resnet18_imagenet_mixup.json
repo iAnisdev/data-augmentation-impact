@@ -1,0 +1,167 @@
+{
+  "model": "resnet18",
+  "dataset": "imagenet",
+  "augmentation": "mixup",
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 2.1971,
+      "val_loss": 2.2434,
+      "val_accuracy": 0.19,
+      "learning_rate": 0.001,
+      "duration_sec": 45.90608019544089
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.1189,
+      "val_loss": 2.0758,
+      "val_accuracy": 0.3178,
+      "learning_rate": 0.001,
+      "duration_sec": 55.062725171601755
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.8975,
+      "val_loss": 1.8915,
+      "val_accuracy": 0.3901,
+      "learning_rate": 0.001,
+      "duration_sec": 56.71551162546926
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.6815,
+      "val_loss": 1.7013,
+      "val_accuracy": 0.4568,
+      "learning_rate": 0.001,
+      "duration_sec": 52.76339852413044
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.6219,
+      "val_loss": 1.6425,
+      "val_accuracy": 0.5104,
+      "learning_rate": 0.001,
+      "duration_sec": 52.722052756015486
+    },
+    {
+      "epoch": 6,
+      "train_loss": 1.3861,
+      "val_loss": 1.3674,
+      "val_accuracy": 0.5692,
+      "learning_rate": 0.001,
+      "duration_sec": 46.42377296920458
+    },
+    {
+      "epoch": 7,
+      "train_loss": 1.2182,
+      "val_loss": 1.1996,
+      "val_accuracy": 0.622,
+      "learning_rate": 0.0001,
+      "duration_sec": 58.934743307283014
+    },
+    {
+      "epoch": 8,
+      "train_loss": 1.1683,
+      "val_loss": 1.1775,
+      "val_accuracy": 0.6481,
+      "learning_rate": 0.0001,
+      "duration_sec": 59.70142087607772
+    },
+    {
+      "epoch": 9,
+      "train_loss": 1.0603,
+      "val_loss": 1.0768,
+      "val_accuracy": 0.6785,
+      "learning_rate": 0.0001,
+      "duration_sec": 61.136694785345284
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.9187,
+      "val_loss": 0.9222,
+      "val_accuracy": 0.7062,
+      "learning_rate": 0.0001,
+      "duration_sec": 52.440361715855666
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.8903,
+      "val_loss": 0.9369,
+      "val_accuracy": 0.7311,
+      "learning_rate": 0.0001,
+      "duration_sec": 60.09085748169365
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.8183,
+      "val_loss": 0.8189,
+      "val_accuracy": 0.7545,
+      "learning_rate": 0.0001,
+      "duration_sec": 51.400992020612236
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.724,
+      "val_loss": 0.7159,
+      "val_accuracy": 0.7747,
+      "learning_rate": 0.0001,
+      "duration_sec": 64.0012393410161
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.6213,
+      "val_loss": 0.6392,
+      "val_accuracy": 0.7866,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 57.63674424339598
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.5355,
+      "val_loss": 0.5716,
+      "val_accuracy": 0.7883,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 60.047490588753604
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.5359,
+      "val_loss": 0.5548,
+      "val_accuracy": 0.8058,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 46.82412206097381
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.4563,
+      "val_loss": 0.3936,
+      "val_accuracy": 0.8208,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 62.754083655166
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.372,
+      "val_loss": 0.3623,
+      "val_accuracy": 0.8541,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 47.85983364105672
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.4418,
+      "val_loss": 0.4288,
+      "val_accuracy": 0.8499,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 61.437201185807126
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.3148,
+      "val_loss": 0.3217,
+      "val_accuracy": 0.8521,
+      "learning_rate": 1.0000000000000003e-05,
+      "duration_sec": 46.69675428170384
+    }
+  ]
+}

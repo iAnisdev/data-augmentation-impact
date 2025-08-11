@@ -1,0 +1,8 @@
+Augmentation Method,CNN Accuracy,ResNet-18 Accuracy,EfficientNet-B0 Accuracy,ResNet Improvement (%),EfficientNet Improvement (%)
+GAN,0.720,0.990,0.990,37.5%,37.5%
+VQVAE,0.520,0.786,0.818,51.2%,57.3%
+FUSION,0.680,0.990,0.990,45.6%,45.6%
+MIXUP,0.610,0.889,0.926,45.8%,51.8%
+LSB,0.650,0.930,0.969,43.1%,49.0%
+MIAMIX,0.570,0.808,0.834,41.8%,46.3%
+AUTO,0.450,0.632,0.652,40.4%,44.9%
